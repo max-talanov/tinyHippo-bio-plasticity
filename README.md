@@ -3,12 +3,10 @@
 NEURON implementation of the bio-plausible plasticity specified in
 [**hippocampal_timescales_as_circuit_spec.md**](hippocampal_timescales_as_circuit_spec.md) (the main approach file),
 tested in a minimal CA1 circuit (1 pyramidal cell, up to 3 interneurons) with
-biological timescales. It is the biophysical companion of the NEST model in
-[tinyHippo](https://github.com/max-talanov/tinyHippo).
+biological timescales.
 
 **Milestone 1:** short-term plasticity (Tsodyks–Markram) per synapse class.
-**Next:** synaptic tagging and capture, falsification tests, export of fitted
-parameters to the NEST model.
+**Next:** synaptic tagging and capture, falsification tests, graded `V_seg`.
 
 ![Tier A / Tier B circuit](docs/figures/neuron_stp_tier_b.png)
 

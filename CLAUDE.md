@@ -4,10 +4,7 @@
 
 Implement the plasticity of `hippocampal_timescales_as_circuit_spec.md` in NEURON
 in a minimal CA1 circuit (see `docs/plan.md`), simulated in real biological units.
-First milestone: short-term plasticity (S0–S3). Then tag/capture (S4–S5).
-This repository is the biophysical companion of
-[tinyHippo](https://github.com/max-talanov/tinyHippo) (NEST); results are exported
-to it as parameters (plan §6).
+First milestone: short-term plasticity (S0–S3). Then tag/capture (S4–S6).
 
 ## Rules
 
