@@ -279,7 +279,7 @@ network-level dynamics.
 dendritic-convolution pipeline: per-synapse 
 threshold units feed a two-level hierarchy of 
 OR-gated refractory junctions (each level with 
-its own 5–10 ms τ_rf), converging on a soma that also receives a direct, dendritic-bypass inhibitory input, followed by a fixed-delay axon stage.](dendritic_convolution.png)
+its own 5–10 ms τ_rf), converging on a soma that also receives a direct, dendritic-bypass inhibitory input, followed by a fixed-delay axon stage.](../figures/dendritic_convolution.png)
 
 **Figure 1.** Reference circuit topology for a two-cluster excitatory
 dendritic tree feeding a single soma, instantiating the three-stage

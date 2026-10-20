@@ -1,7 +1,7 @@
 # Plan: minimal NEURON circuit for short-term plasticity and tag/capture dynamics
 
 **Repository:** `tinyHippo-bio-plasticity` (split from [tinyHippo](https://github.com/max-talanov/tinyHippo) at commit 750080d).
-**Spec:** [hippocampal_timescales_as_circuit_spec.md](hippocampal_timescales_as_circuit_spec.md) §1, §2, §4.1, §4.2.
+**Spec:** [hippocampal_timescales_as_circuit_spec.md](../hippocampal_timescales_as_circuit_spec.md) §1, §2, §4.1, §4.2.
 **Sibling plan:** [plan_branch_bio_plasticity.md](https://github.com/max-talanov/tinyHippo/blob/main/plan_branch_bio_plasticity.md) (tinyHippo repository), whose §1 lists
 short-term plasticity (STP) as "Missing" in the NEST model.
 
