@@ -218,3 +218,13 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# NEURON / nrnivmodl build output
+x86_64/
+arm64/
+aarch64/
+*.o
+*.mod.c
+*.mod.o
+# local simulation output
+out/
