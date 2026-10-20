@@ -21,6 +21,17 @@ spike generators. Tier B = Tier A plus PV basket, bistratified and O-LM cells.*
 - `mod/`, `tests/`: NMODL mechanisms and tests (empty until S0–S1).
 - [RESULTS.md](RESULTS.md): numbered experiment log.
 
+## Setup
+
+```bash
+python3 -m venv .venv && . .venv/bin/activate
+pip install -r requirements.txt
+pytest -q tests          # S0: compiles mod/ with nrnivmodl and checks Exp2Syn + an event-driven mechanism
+```
+
+Tested with NEURON 9.0.2, Python 3.13, numpy 2.5, scipy 1.18, matplotlib 3.11, pytest 9.1 (Linux x86_64).
+`nrn_setup.load_mechanisms()` recompiles `mod/` when a `.mod` file is newer than the build.
+
 ## Status
 
-Planning. No code yet. Stage S0 (install NEURON, compile a test mechanism) is next.
+S0 (environment) passes. S1 (verify the Tsodyks–Markram synapse against the closed form) is next.
