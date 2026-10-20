@@ -15,6 +15,7 @@ spike generators. Tier B = Tier A plus PV basket, bistratified and O-LM cells.*
 
 ## Contents
 
+- [docs/handoff.md](docs/handoff.md): decisions, status, blockers and next steps (read first).
 - [docs/plan.md](docs/plan.md): the plan, stages S0–S7 and acceptance criteria.
 - [hippocampal_timescales_as_circuit_spec.md](hippocampal_timescales_as_circuit_spec.md): the main approach file, in the repository root (timescales, tag/capture, `V_seg`).
 - [docs/neuron_model_optimization.md](docs/neuron_model_optimization.md): hardware-feasibility companion to the spec.

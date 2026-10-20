@@ -6,6 +6,8 @@ Implement the plasticity of `hippocampal_timescales_as_circuit_spec.md` in NEURO
 in a minimal CA1 circuit (see `docs/plan.md`), simulated in real biological units.
 First milestone: short-term plasticity (S0–S3). Then tag/capture (S4–S6).
 
+**Start here:** read `docs/handoff.md` (decisions, status, blockers, next steps) before working.
+
 ## Rules
 
 - Follow `docs/plan.md` stage by stage. Each stage has an acceptance criterion; report against it.
