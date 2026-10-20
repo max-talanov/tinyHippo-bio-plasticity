@@ -26,7 +26,8 @@ spike generators. Tier B = Tier A plus PV basket, bistratified and O-LM cells.*
 ```bash
 python3 -m venv .venv && . .venv/bin/activate
 pip install -r requirements.txt
-pytest -q tests          # S0: compiles mod/ with nrnivmodl and checks Exp2Syn + an event-driven mechanism
+pytest -q tests          # S0, S1: compiles mod/ with nrnivmodl, checks Exp2Syn, event handling and TMSyn
+python run_s1.py         # prints the S1 error table
 ```
 
 Tested with NEURON 9.0.2, Python 3.13, numpy 2.5, scipy 1.18, matplotlib 3.11, pytest 9.1 (Linux x86_64).
@@ -34,4 +35,4 @@ Tested with NEURON 9.0.2, Python 3.13, numpy 2.5, scipy 1.18, matplotlib 3.11, p
 
 ## Status
 
-S0 (environment) passes. S1 (verify the Tsodyks–Markram synapse against the closed form) is next.
+S0 (environment) and S1 (`TMSyn` verified against the closed-form Tsodyks–Markram solution, [RESULTS.md §1](RESULTS.md)) pass. S2 (STP signatures per pathway) is next.

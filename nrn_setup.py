@@ -6,6 +6,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent
 MOD_DIR = ROOT / "mod"
 _ARCHS = ("x86_64", "arm64", "aarch64")
+_loaded = False
 
 
 def _find_lib():
@@ -19,8 +20,11 @@ def _find_lib():
 
 def load_mechanisms():
     """Run nrnivmodl on mod/ when the build is missing or older than a .mod file, then load it."""
+    global _loaded
     from neuron import h
 
+    if _loaded:        # loading the same library twice raises in NEURON
+        return h
     lib = _find_lib()
     newest_mod = max(p.stat().st_mtime for p in MOD_DIR.glob("*.mod"))
     if lib is None or lib.stat().st_mtime < newest_mod:
@@ -30,4 +34,5 @@ def load_mechanisms():
         lib = _find_lib()
     if lib is None or not h.nrn_load_dll(str(lib)):
         raise RuntimeError(f"could not load NMODL library from {MOD_DIR}")
+    _loaded = True
     return h
