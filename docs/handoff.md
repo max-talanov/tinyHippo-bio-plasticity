@@ -41,6 +41,13 @@ e.g. the 2019 bioRxiv "Data-driven integration of hippocampal CA1 synapse physio
 (10.1101/716480). Markram et al. 1998 is neocortical, so it is not a CA1 source.
 Two citations in the plan (Cutsuridis 2010, Bezaire 2016) are from memory and unverified.
 
+## Update 2026-10-20
+
+The blocker moved: the env fetched Ecker 2019 (bioRxiv PDF via curl) and the Hippocampus Hub SC page, but PMC, Wiley
+and Europe PMC are blocked by reCAPTCHA / 403 / 500. `params.py` now has sourced (secondary) U, D, F for 9 pathways.
+Analysis and caveats: `docs/ca1_architecture_literature.md`. Main finding: the SC-> interneuron/PYR numbers give PPR > 1,
+which contradicts the plan's "SC -> PV depressing" criterion. Still needed: primary text of Wierenga & Wadman 2003 and Losonczy 2002.
+
 ## Next steps
 
 1. Fill `params.py` from the papers (value, source, species, age, temperature, [Ca²⁺]ₒ, afferent).
