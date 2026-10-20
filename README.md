@@ -35,4 +35,4 @@ Tested with NEURON 9.0.2, Python 3.13, numpy 2.5, scipy 1.18, matplotlib 3.11, p
 
 ## Status
 
-S0 (environment) and S1 (`TMSyn` verified against the closed-form Tsodyks–Markram solution, [RESULTS.md §1](RESULTS.md)) pass. S2 (STP signatures per pathway) is next.
+S0 (environment) and S1 (`TMSyn` verified against the closed-form Tsodyks–Markram solution, [RESULTS.md §1](RESULTS.md)) pass. S2 (STP readout and fitting) is built and tested on synthetic data, [RESULTS.md §2](RESULTS.md); its literature targets are pending (see below).

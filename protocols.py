@@ -67,3 +67,57 @@ def run_tm(spikes, U, tau_rec, tau_fac, w=1e-3, tau1=0.5, tau2=3.0, cvode=True, 
     fih = nc = syn = None
     h.delete_section(sec=soma)
     return out
+
+
+def run_clamped(spikes, U, tau_rec, tau_fac, w=1e-3, tau1=0.5, tau2=3.0, v_hold=-70.0,
+                tail=50.0, rec_dt=0.05):
+    """Voltage-clamp a soma at v_hold and drive one TMSyn (AMPA-like, e = 0 mV) with `spikes`.
+
+    Returns (t, i): the clamp current in nA (inward EPSCs are negative), sampled every rec_dt.
+    Fixed step, dt = DT_FIXED, so spike times should lie on that grid.
+    """
+    soma = h.Section(name="soma")
+    soma.L = soma.diam = 20.0
+    soma.insert("pas")
+    clamp = h.SEClamp(soma(0.5))
+    clamp.dur1, clamp.amp1, clamp.rs = 1e9, v_hold, 0.01
+    syn = h.TMSyn(soma(0.5))
+    syn.U, syn.tau_rec, syn.tau_fac, syn.tau1, syn.tau2 = U, tau_rec, tau_fac, tau1, tau2
+    nc = h.NetCon(None, syn)
+    nc.weight[0] = w
+
+    def schedule():
+        for ts in spikes:
+            nc.event(float(ts))
+
+    fih = h.FInitializeHandler(1, schedule)
+    tv, iv = h.Vector(), h.Vector()
+    tv.record(h._ref_t, rec_dt)
+    iv.record(clamp._ref_i, rec_dt)
+    h.cvode_active(0)
+    h.dt = DT_FIXED
+    h.finitialize(v_hold)
+    _advance_to(float(spikes[-1]) + tail)
+    out = (np.array(tv), np.array(iv))
+    for vec in (tv, iv):
+        vec.play_remove()
+    fih = nc = syn = clamp = None
+    h.delete_section(sec=soma)
+    return out
+
+
+def epsc_amplitudes(t, i, spikes, window=None):
+    """EPSC amplitudes the way an experimenter reads them: peak minus the current just before the pulse.
+
+    Peak = most negative current in [t_n, t_{n+1}) (the last window is `window` ms long);
+    baseline = current at the sample just before t_n. Returns positive amplitudes in nA.
+    """
+    spikes = np.asarray(spikes, dtype=float)
+    amps = np.empty(len(spikes))
+    for n, ts in enumerate(spikes):
+        t_end = spikes[n + 1] if n + 1 < len(spikes) else ts + (window or 30.0)
+        k0 = int(np.searchsorted(t, ts, side="left"))
+        base = i[k0 - 1] if k0 > 0 else 0.0
+        sel = (t >= ts) & (t < t_end)
+        amps[n] = base - np.min(i[sel])
+    return amps
