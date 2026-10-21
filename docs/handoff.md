@@ -26,7 +26,7 @@ visible from the code. Update it whenever a decision or the status changes.
 | S0 environment (NEURON 9.0.2, nrnivmodl) | passes | `tests/test_s0_environment.py` |
 | S1 `TMSyn` vs closed-form Tsodyks–Markram | passes (amp error 8e-14, trace 2e-6 of peak) | `RESULTS.md` §1 |
 | S2 STP signatures per pathway | **sign test passes** on secondary-source literature parameters (9 pathways); fit only round-tripped, no real recordings | `RESULTS.md` §2, §3 |
-| S3 STP × inhibition (Tier B) | not started | `docs/plan.md` |
+| S3 STP × inhibition (Tier B) | **pilot only**: circuit builds and runs with placeholder biophysics; the 6 STP on/off conditions, [Ca²⁺]ₒ sweep, E/I ratio and ablations are not done | `RESULTS.md` §4, `cells.py`, `circuit.py`, `run_s3_pilot.py` |
 | S4–S7 | not started | |
 
 ## Blocker on S2

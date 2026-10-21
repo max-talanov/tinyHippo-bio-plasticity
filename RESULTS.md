@@ -136,3 +136,51 @@ of the value) but is also nearly irrelevant for the output. U and τ_rec are con
 **Not shown.** This does not test whether the literature values describe real synapses, and no fit to experimental
 amplitudes was made. S2 acceptance (targets from the literature *before* fitting, then fit with CIs) is met for the
 sign test; the fit half remains open until recordings or the primary papers' amplitudes are available.
+
+## §4. S3 pilot: Tier-B circuit activity and PYR synaptic weight profiles (PILOT, placeholder biophysics)
+
+`python run_s3_pilot.py` (`cells.py`, `circuit.py`; NEURON 9.0.2, fixed step dt = 0.025 ms, 1 s, ≈1 s wall clock per run).
+Figures: `docs/figures/s3_pilot_activity.png`, `docs/figures/s3_pilot_weights.png` (seed 0).
+**What is not literature-based:** all cell biophysics (NEURON textbook `hh` soma, passive dendrites, one-compartment
+interneurons that differ only in size), the SC and T conductances (0.6 nS = the PC→PC value, no CA1 SC source), SC→interneuron
+conductances (taken from PC→interneuron), contact counts, NetCon delay (1 ms), AMPA-only, and the GABA_A kinetics
+(0.5/8 ms). STP (U, D, F) and the PC↔interneuron peak conductances come from `params.py` / Ecker 2019 (secondary sources).
+DC rheobase (500 ms, bisection): PV 16 pA, bistratified 23 pA, O-LM 28 pA, PYR 28 pA.
+
+**Protocol.** 600 SC synapses on apical prox (SR), 300 on basal (SO), 300 T synapses (SR) at 5 Hz, 40 SC synapses on each
+of PV and bistratified; every synapse has its own Tsodyks–Markram pool and an independent Poisson train: 1 Hz background,
+20 Hz per fibre during a 300 ms volley (200–500 ms). PYR→interneuron projections use one pool with weight 10 × ĝ,
+interneuron→PYR one pool with 5 × ĝ. No time compression.
+
+**Spike counts in the 300 ms volley** (mean ± SD, 5 seeds; Poisson trains differ per seed, nothing else):
+
+| Condition | PYR | PV | Bistratified | O-LM |
+|---|---|---|---|---|
+| STP on | 2.4 ± 0.5 | 19.0 ± 1.2 | 13.2 ± 1.1 | 2.2 ± 0.8 |
+| STP off (static, release fraction = U) | 2.2 ± 0.4 | 17.4 ± 0.5 | 8.8 ± 1.3 | 1.6 ± 0.5 |
+
+STP changes the PYR count by 0.2 spikes (within one SD), so no PYR effect can be claimed. Bistratified fires about 50% more
+with STP on, consistent with the facilitating SC→interneuron fit, but the SC→interneuron parameters are the pooled fit
+and 5 seeds with SD ≈ 1 is a small sample. Doubling the SC contact count lowered PYR spikes from 2 to 1 (3 seeds, not tabulated);
+the cause was not examined (depolarization block of the placeholder soma or stronger feedforward inhibition are candidates),
+so the drive level was not tuned upward.
+
+**Effective weight w·u·x (pS) per release event, seed 0** (w·U, the static-control level, is 84 pS for the three excitatory pathways):
+
+| Pathway | w (pS) | n synapses | events | pre-volley | first 50 ms of volley | last 50 ms | last / first |
+|---|---|---|---|---|---|---|---|
+| SC → PYR apical prox | 600 | 600 | 3922 | 87.1 | 102.7 | 95.5 | 0.93 |
+| SC → PYR basal | 600 | 300 | 2048 | 89.9 | 104.6 | 94.2 | 0.90 |
+| T → PYR apical prox (5 Hz) | 600 | 300 | 1512 | 97.2 | 100.1 | 105.5 | 1.05 |
+| PV → PYR soma | 8750 | 1 | 28 | none | 1269 | 166 | 0.13 |
+| BiS → PYR apical prox | 12000 | 1 | 12 | none | 1478 | 434 | 0.29 |
+| O-LM → PYR apical dist | 6500 | 1 | 1 | none | 1950 | n/a | n/a |
+
+Excitatory SC and T weights stay within about ±20% of w·U (population mean; SD in the figure): facilitation at low per-synapse
+rates (1–20 Hz Poisson) and mild depression at the end of the volley. Inhibitory weights depress strongly, to 13% (PV)
+and 29% (bistratified) of their first-event value within the volley, so the inhibition that the PYR receives decays as
+the volley proceeds. The release fraction in NEURON (`TMSyn.amp`) equals the closed form used for these profiles to
+< 3e-17 for the first synapse of each excitatory pathway. Single synapse pools make the inhibitory profiles per-event
+values of one pool, not an average over contacts. The PV firing after the volley (550–880 ms) is Poisson-driven
+background with strong placeholder conductances (3 nS × 40 synapses); it was not examined further. PYR dendrites have no
+voltage-gated channels, so their "spikes" are the passive spread of the somatic action potential.
