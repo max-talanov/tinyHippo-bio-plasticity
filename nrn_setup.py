@@ -12,9 +12,10 @@ _loaded = False
 def _find_lib():
     for arch in _ARCHS:
         for sub in ("", ".libs"):
-            lib = MOD_DIR / arch / sub / "libnrnmech.so"
-            if lib.exists():
-                return lib
+            for ext in ("so", "dylib"):      # .dylib on macOS
+                lib = MOD_DIR / arch / sub / f"libnrnmech.{ext}"
+                if lib.exists():
+                    return lib
     return None
 
 

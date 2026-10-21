@@ -25,7 +25,7 @@ visible from the code. Update it whenever a decision or the status changes.
 |---|---|---|
 | S0 environment (NEURON 9.0.2, nrnivmodl) | passes | `tests/test_s0_environment.py` |
 | S1 `TMSyn` vs closed-form Tsodyks–Markram | passes (amp error 8e-14, trace 2e-6 of peak) | `RESULTS.md` §1 |
-| S2 STP signatures per pathway | **partial**: readout and fit built and tested on synthetic data; literature targets missing | `RESULTS.md` §2 |
+| S2 STP signatures per pathway | **sign test passes** on secondary-source literature parameters (9 pathways); fit only round-tripped, no real recordings | `RESULTS.md` §2, §3 |
 | S3 STP × inhibition (Tier B) | not started | `docs/plan.md` |
 | S4–S7 | not started | |
 
@@ -61,3 +61,5 @@ which contradicts the plan's "SC -> PV depressing" criterion. Still needed: prim
 - With CVODE, `h.continuerun(t)` can return early; `protocols._advance_to` uses `fadvance`.
 - Loading the compiled mechanisms twice in one process raises; `nrn_setup.load_mechanisms` is idempotent.
 - The three `PARAMS` fixtures in the tests are test values, not literature values.
+
+- Run NEURON from a Python 3.9-3.13 venv with `PYTHONPATH` unset: the app-bundle NEURON in `PYTHONPATH` shadows pip's and fails to load. On macOS the mechanisms build to `libnrnmech.dylib`.

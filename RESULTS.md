@@ -90,3 +90,49 @@ apart from a facilitating one by PPR alone and needs the train data.
 **Next (needs input).** Read the full texts (Losonczy 2002 and a CA1 Schaffer-collateral source), enter their
 numbers in `params.py` with conditions, then run the PPR check per pathway and fit. This needs either the
 hosts above added to the environment's allowed domains, or the papers (or their parameter tables) supplied directly.
+
+## §3. S2: PPR sign test and fit identifiability on the literature parameter set
+
+`python run_s2_lit.py` (NEURON 9.0.2 pip, Python 3.13, macOS arm64; one run, deterministic except the seeded noise, seed 0).
+Parameters are from `params.py`: Ecker et al. 2019 Table 1 and the Hippocampus Hub SC page quoting Wierenga & Wadman
+2003. All are **secondary-source** values (status `secondary`); SC→PYR and SC→interneuron have no stated temperature or
+[Ca²⁺]ₒ; PYR→O-LM and O-LM→PYR are rat somatosensory cortex values. No real recordings were fitted.
+
+**PPR sign test** (voltage clamp at −70 mV, EPSC2/EPSC1, ISI 20–500 ms; expected class from `params.py`):
+
+| Pathway | Expected | PPR at 20 / 50 / 100 / 200 / 500 ms | Result |
+|---|---|---|---|
+| SC→PYR | facilitating | 1.517 / 1.414 / 1.282 / 1.126 / 1.008 | pass |
+| SC→PV, SC→BiS (pooled interneuron fit) | facilitating | 1.617 / 1.531 / 1.411 / 1.243 / 1.045 | pass |
+| PYR→PV, PYR→BiS | depressing | 0.862 / 0.801 / 0.820 / 0.859 / 0.932 | pass |
+| PYR→O-LM | facilitating | 1.736 / 1.729 / 1.706 / 1.640 / 1.428 | pass |
+| PV→PYR | depressing | 0.912 / 0.850 / 0.856 / 0.870 / 0.905 | pass |
+| BiS→PYR | depressing | 0.960 / 0.879 / 0.881 / 0.891 / 0.917 | pass |
+| O-LM→PYR | depressing | 0.704 / 0.712 / 0.723 / 0.744 / 0.799 | pass |
+
+NEURON agrees with the closed form to 1.0e-3 relative at most. The expected classes for SC→PYR and SC→interneuron were
+set to "facilitating" after computing the closed-form PPR from these parameters (see `docs/ca1_architecture_literature.md`
+§3), so those three passes confirm the NEURON readout, not an independent prediction. The plan's original wording
+(SC→PV depressing) is **not** supported by these numbers.
+
+**Fit round trip** (noisy amplitudes generated from each pathway's parameters, S2 protocol of §2, 10% noise, 100
+replicates, `fit_tm`). Median 95% CI half-width relative to the true value, and empirical coverage:
+
+| Pathway | U | τ_rec | τ_fac | coverage range |
+|---|---|---|---|---|
+| SC→PYR | 0.15 | 0.28 | 0.23 | 91–96% |
+| SC→interneuron (PV/BiS) | 0.13–0.14 | 0.27 | 0.21–0.22 | 91–97% |
+| PYR→PV/BiS | 0.11 | 0.23 | 0.76–0.78 (τ_fac = 10 ms) | 94–100% |
+| PYR→O-LM | 0.24 | 0.37 | 0.20 | 90–94% |
+| PV→PYR | 0.10 | 0.28 | 0.72 (τ_fac = 8.6 ms) | 91–96% |
+| BiS→PYR | 0.12 | 0.40 | 0.63 (τ_fac = 9.3 ms) | 91–97% |
+| O-LM→PYR | 0.07 | 0.16 | **5.91** (τ_fac = 2 ms) | 80–95% |
+
+Coverage is near nominal (SE about 2–3 points at 100 replicates), except τ_fac of O-LM→PYR (80%): when τ_fac is a few ms,
+facilitation is invisible at the protocol's shortest ISI (20 ms) and τ_fac is not identifiable (median estimate 4.8 ms
+against a true 2 ms, CI wider than the value). For the other depressing pathways τ_fac is also poorly bounded (CI 0.6–0.8
+of the value) but is also nearly irrelevant for the output. U and τ_rec are constrained to 7–24% and 16–40%.
+
+**Not shown.** This does not test whether the literature values describe real synapses, and no fit to experimental
+amplitudes was made. S2 acceptance (targets from the literature *before* fitting, then fit with CIs) is met for the
+sign test; the fit half remains open until recordings or the primary papers' amplitudes are available.
