@@ -64,10 +64,13 @@ which contradicts the plan's "SC -> PV depressing" criterion. Still needed: prim
 ## Open items from Edu's consolidation comment (2026-10-22)
 
 Applied: terminology in the model document, late-LTP stabilization vs persistence, this record.
+Applied 2026-10-22: the memristive document uses the same terminology; system consolidation is
+"recall no longer depends on the organic tier" (the organic state afterwards is a free parameter;
+standard, multiple-trace and trace-transformation accounts named); the cortical tier has its own
+cellular-consolidation (volatile-until-latched) step, an open device requirement. Fig. 1 regenerated
+(`figures/src/make_timescale_axis.py`); Fig. 3B relabelled "cellular consolidation" (raster patch, no
+source file); tier-map SVG updated (late-LTP stabilized ~4–8 h with persistence tail).
 Not yet applied (need a decision by the project owner):
-- The memristive document (§1.1, §6) still uses "systems consolidation", "stable ~2 days", and says
-  replay "physically relocates the trace" / the organic tier's "role ends". Revise to "independent of"
-  the hippocampal tier and give the cortical tier its own cellular-consolidation (volatile + capture) step.
 - S4: add a time-resolved PRP block (switch PRP production off at t_b = 0...8 h after induction, read
   w_T late) so that the protein-synthesis-sensitivity window is a model output to compare with ~6 h.
   With instantaneous capture in `SegTag` the window will be short; decide instantaneous vs gradual
