@@ -74,3 +74,32 @@ PATHWAYS = {
 
 # Kept for the record: Losonczy et al. 2002 (abstract only, mouse): ~75% of O-LM cells facilitating (3/12 also
 # depressing); 8/12 basket cells depression-only; O-Bi cells 2/9 facilitating, 2/9 depressing, 5/9 combined.
+
+
+@dataclass(frozen=True)
+class SlowTimescale:
+    name: str
+    value: Optional[float] = None        # h
+    low: Optional[float] = None          # h, range if given
+    high: Optional[float] = None         # h
+    source: str = ""
+    conditions: str = ""                 # species, preparation / behavioural paradigm
+    status: str = "unverified"
+
+
+# Slow (cellular-consolidation) timescales. Not used by any run yet (S4).
+SLOW_TIMESCALES = {
+    # Edu (hippocampal neuroscientist), comment of 2026-10, relayed by the project owner. Not checked against
+    # primary literature. Behavioural window, not a slice late-LTP window; the two need not coincide.
+    "cellular_consolidation_window": SlowTimescale(
+        "cellular_consolidation_window", value=6.0,
+        source="personal communication (Edu, 2026-10)",
+        conditions="behavioural, e.g. fear conditioning; window after learning in which protein-synthesis "
+                   "blockade removes the memory; species, drug, dose and route not given",
+        status="unverified"),
+    # Late-LTP stabilization time, from the spec table (no source given there). Kept separate from persistence.
+    "late_ltp_stabilization": SlowTimescale(
+        "late_ltp_stabilization", low=4.0, high=8.0,
+        source="spec table (hippocampal_plasticity_model.md §1), no primary source cited",
+        conditions="not stated", status="unverified"),
+}

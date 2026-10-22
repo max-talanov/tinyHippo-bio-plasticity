@@ -6,8 +6,9 @@ visible from the code. Update it whenever a decision or the status changes.
 ## Decisions (all confirmed by the project owner)
 
 1. Goal: a bio-plausible NEURON implementation of the plasticity in
-   `hippocampal_timescales_as_circuit_spec.md` (root), in a minimal CA1 circuit. Real biological
-   timescales, no time compression.
+   `hippocampal_plasticity_model.md` (root), in a minimal CA1 circuit. Real biological
+   timescales, no time compression. (Until 2026-10-22 the spec was one file,
+   `hippocampal_timescales_as_circuit_spec.md`; it is now split, see decision 6.)
 2. Circuit: **Tier A** = 1 pyramidal cell (PYR) driven by spike generators; **Tier B** = Tier A + PV basket,
    bistratified and O-LM interneurons (diagram: `docs/figures/neuron_stp_tier_b.svg`;
    orange = excitatory, blue = inhibitory). Tier B is the target. 1 PYR is enough for synapse-local
@@ -18,6 +19,18 @@ visible from the code. Update it whenever a decision or the status changes.
    repository and is out of scope here).
 5. Literature parameters are entered only when read from the source, with conditions, in `params.py`.
    No values from memory.
+6. 2026-10-22: the spec is split into a high-level model (`hippocampal_plasticity_model.md`) and a
+   hardware document (`hippocampal_memristive_implementation.md`). The old file is a pointer stub with
+   a section map.
+7. 2026-10-22, after a comment from Edu (hippocampal neuroscientist): "consolidation" is never used
+   unqualified. **Cellular consolidation** = protein-synthesis-dependent stabilization, ~6 h after
+   learning, local to each region (hippocampus, neocortex, amygdala, ...). **System consolidation** =
+   memory becomes independent of the hippocampus over days-weeks or longer; this shows loss of
+   dependence, not that the trace left the hippocampus. Tag/capture and late-LTP are treated as the
+   hypothesised synaptic correlate of cellular consolidation. Milestone 2 (S4-S6) models only that;
+   system consolidation is out of scope. Late-LTP stabilization time (~4-8 h) is kept separate from
+   persistence (days+; the old "~2 days" was a persistence figure, unsourced). The ~6 h window is in
+   `params.py` `SLOW_TIMESCALES` as unverified (personal communication, behavioural).
 
 ## Status
 
@@ -47,6 +60,19 @@ The blocker moved: the env fetched Ecker 2019 (bioRxiv PDF via curl) and the Hip
 and Europe PMC are blocked by reCAPTCHA / 403 / 500. `params.py` now has sourced (secondary) U, D, F for 9 pathways.
 Analysis and caveats: `docs/ca1_architecture_literature.md`. Main finding: the SC-> interneuron/PYR numbers give PPR > 1,
 which contradicts the plan's "SC -> PV depressing" criterion. Still needed: primary text of Wierenga & Wadman 2003 and Losonczy 2002.
+
+## Open items from Edu's consolidation comment (2026-10-22)
+
+Applied: terminology in the model document, late-LTP stabilization vs persistence, this record.
+Not yet applied (need a decision by the project owner):
+- The memristive document (§1.1, §6) still uses "systems consolidation", "stable ~2 days", and says
+  replay "physically relocates the trace" / the organic tier's "role ends". Revise to "independent of"
+  the hippocampal tier and give the cortical tier its own cellular-consolidation (volatile + capture) step.
+- S4: add a time-resolved PRP block (switch PRP production off at t_b = 0...8 h after induction, read
+  w_T late) so that the protein-synthesis-sensitivity window is a model output to compare with ~6 h.
+  With instantaneous capture in `SegTag` the window will be short; decide instantaneous vs gradual
+  capture before writing `SegTag.mod`. State whether the comparison target is the behavioural (~6 h)
+  or the slice late-LTP window.
 
 ## Next steps
 
