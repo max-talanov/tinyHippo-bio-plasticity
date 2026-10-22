@@ -74,9 +74,14 @@ uses Fig. 1 plus its tier table. Fig. 1 now shades the ~6 h protein-synthesis-se
 8. 2026-10-22: capture in `SegTag` is **gradual** (rate ∝ h(P)·T, soft PRP threshold), not instantaneous;
    instantaneous capture is kept as a limiting case. S4 gets a time-resolved PRP-synthesis block, arm (d).
    See `docs/plan.md` §2 and §3.
+9. 2026-10-22: S4(d)'s half-retention time `t_50` is compared with the **behavioural** ~6 h
+   protein-synthesis-sensitive window (not a slice late-LTP window). It is compared, not fitted: the
+   capture parameters are swept, not tuned to give 6 h. Caveat: the target is a whole-animal behavioural
+   measure and the model is one CA1 synapse, so agreement supports consistency, not mechanism.
 Not yet applied (need a decision by the project owner):
-- (resolved 2026-10-22, decision 8) gradual capture and S4(d) are in `docs/plan.md`. Still open: the
-  comparison target for S4(d) (behavioural ~6 h vs slice late-LTP window) and sources for k_cap, n.
+- (resolved 2026-10-22, decisions 8 and 9) gradual capture and S4(d) are in `docs/plan.md`; S4(d) is
+  compared with the behavioural ~6 h window. Still open: sources for k_cap, n, τ_P, and a primary source
+  for the ~6 h window itself.
 
 ## Next steps
 
