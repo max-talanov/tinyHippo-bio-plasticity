@@ -7,10 +7,11 @@ their total bounded. Each entry gives its timescale, its hook in the spec's circ
 model (§2 tag/capture, §3.2 synaptic-area "activity-dependent weight decay", §4.2
 `V_seg`, §4.5 replay), and its primary literature.
 
-![Thirteen synaptic downscaling mechanisms plotted on the same logarithmic time axis as Fig. 1 of the circuit spec, from 1 ms to 10 years. Short-term depression and presynaptic inhibition occupy milliseconds to minutes; Hebbian, heterosynaptic and tag-related depression occupy minutes to hours; BCM metaplasticity, SWR-associated depression, sleep renormalization and synaptic scaling span hours to days; pruning and active forgetting extend from days to a year.](figures/downscaling_timescale_axis.png)
+![Thirteen synaptic downscaling mechanisms on the same logarithmic time axis as Fig. 1 of the circuit spec, from 1 ms to 10 years, ordered by onset so the bars form a descending staircase. Short-term depression, presynaptic inhibition and SWR-associated depression start in the millisecond range; Hebbian, heterosynaptic and tag-related depression start at seconds to minutes; BCM metaplasticity, sleep renormalization and synaptic scaling start at tens of minutes to hours; pruning and active forgetting start at days and extend to a year.](figures/downscaling_timescale_axis.png)
 
-*Fig. D1. Downscaling mechanisms on the log time axis of the spec's Fig. 1. A bar's
-position marks onset and its length marks characteristic duration. Dotted tails
+*Fig. D1. Downscaling mechanisms on the log time axis of the spec's Fig. 1, ordered
+by onset (ties broken by end), as in Fig. 1. A bar's position marks onset and its
+length marks characteristic duration. Dotted tails
 are recurring or extended effects. Spans are order-of-magnitude summaries of the
 references below, not fitted values. Regenerate with
 `python3 figures/make_downscaling_timescale_axis.py`.*
@@ -30,14 +31,14 @@ conditions before use.
 |---|---|---|---|---|
 | 1 | Short-term depression | 10 ms–10 s | STP (S0–S3) | transient, presynaptic |
 | 2 | Presynaptic inhibition (adenosine A1, GABA_B, mGluR) | 50 ms–min (tonic: hours) | neuromodulatory input, §3.2 | transient, presynaptic |
-| 3 | NMDAR-dependent LTD / STDP depression | induction s–min, expression hours | `g_Ca(V_seg)` low-Ca branch, §4.2 | Hebbian |
-| 4 | mGluR-LTD | min–1 day | PRP pool, §2 | Hebbian, protein-synthesis dependent |
+| 3 | SWR-associated depression | ripple 100 ms, effect hours, recurs over days | §4.5 replay | sleep / replay |
+| 4 | NMDAR-dependent LTD / STDP depression | induction s–min, expression hours | `g_Ca(V_seg)` low-Ca branch, §4.2 | Hebbian |
 | 5 | Depotentiation / tag reset | window 1 min–1 hr | active reset of the §2 tag | Hebbian, reversal |
-| 6 | Passive E-LTP / tag decay | τ ≈ 1–4 hr | τ_tag decay in Fig. 2 | intrinsic decay |
-| 7 | Heterosynaptic depression | min–hours | per-segment conservation (`V_seg` unit) | competitive |
-| 8 | PRP competition | 30 min–8 hr | capture threshold, §2 | competitive |
-| 9 | BCM sliding threshold / metaplasticity | 30 min–days | LTD/LTP crossover of `g_Ca` | homeostatic |
-| 10 | SWR-associated depression | ripple 100 ms, effect hours, recurs over days | §4.5 replay | sleep / replay |
+| 6 | Heterosynaptic depression | min–hours | per-segment conservation (`V_seg` unit) | competitive |
+| 7 | mGluR-LTD | min–1 day | PRP pool, §2 | Hebbian, protein-synthesis dependent |
+| 8 | Passive E-LTP / tag decay | τ ≈ 1–4 hr | τ_tag decay in Fig. 2 | intrinsic decay |
+| 9 | PRP competition | 30 min–8 hr | capture threshold, §2 | competitive |
+| 10 | BCM sliding threshold / metaplasticity | 30 min–days | LTD/LTP crossover of `g_Ca` | homeostatic |
 | 11 | Sleep renormalization (SHY) | hours, each sleep cycle | global downscaling between replay epochs | sleep / homeostatic |
 | 12 | Synaptic scaling | 12 hr–days | §3.2 weight decay | homeostatic |
 | 13 | Pruning and active forgetting | days–months | removal of uncaptured traces | structural |
@@ -75,7 +76,29 @@ Expressed as a scaling of the TM parameter U.
 - Porkka-Heiskanen T et al. (1997). Adenosine: a mediator of the sleep-inducing effects of prolonged wakefulness. *Science* 276:1265–1268.
 - Davies CH, Starkey SJ, Pozza MF, Collingridge GL (1991). GABA_B autoreceptors regulate the induction of LTP. *Nature* 349:609–611.
 
-## 3. NMDAR-dependent LTD and STDP depression
+## 3. SWR-associated depression
+
+**Mechanism.** In mouse hippocampus, sharp-wave ripples during slow-wave states
+trigger long-lasting, NMDAR-dependent and pathway-specific synaptic depression.
+Suppressing ripples prevents the spontaneous downregulation of net synaptic
+weight and impairs learning of new memories. Across sleep, CA1 firing rates fall,
+and the size of that drop is predicted by NREM spindle/SWR incidence followed by
+REM. In cortex, Up states bias plasticity toward depression of inputs that do not
+drive the postsynaptic cell, while inputs that do drive it are spared.
+
+**Spec hook.** §4.5. The same SWR event that replays and captures the stored
+sequence also depresses the rest of the synapses. Replay therefore acts as
+selection (capture what is replayed, depress what is not), not only as
+potentiation.
+
+**References.**
+- Norimoto H, Makino K, Gao M, et al. (2018). Hippocampal ripples down-regulate synapses. *Science* 359:1524–1527. doi:10.1126/science.aao0702
+- Miyawaki H, Diba K (2016). Regulation of hippocampal firing by network oscillations during sleep. *Curr Biol* 26:893–902.
+- Grosmark AD, Mizuseki K, Pastalkova E, Diba K, Buzsáki G (2012). REM sleep reorganizes hippocampal excitability. *Neuron* 75:1001–1007.
+- González-Rueda A, Pedrosa V, Feord RC, Clopath C, Paulsen O (2018). Activity-dependent downscaling of subthreshold synaptic inputs during slow-wave-sleep-like activity in vivo. *Neuron* 97:1244–1252. doi:10.1016/j.neuron.2018.01.047 (cortex)
+- Lewis PA, Durrant SJ (2011). Overlapping memory replay during sleep builds cognitive schemata. *Trends Cogn Sci* 15:343–351.
+
+## 4. NMDAR-dependent LTD and STDP depression
 
 **Mechanism.** Modest, prolonged postsynaptic Ca²⁺ influx through NMDARs (for
 example 1 Hz for 15 min) preferentially activates phosphatases (calcineurin, PP1)
@@ -95,21 +118,6 @@ a tag. The ±20 ms STDP window in §4.3 gains a negative lobe.
 - Bi GQ, Poo MM (1998). Synaptic modifications in cultured hippocampal neurons: dependence on spike timing, synaptic strength, and postsynaptic cell type. *J Neurosci* 18:10464–10472.
 - Shouval HZ, Bear MF, Cooper LN (2002). A unified model of NMDA receptor-dependent bidirectional synaptic plasticity. *PNAS* 99:10831–10836. (model)
 - Graupner M, Brunel N (2012). Calcium-based plasticity model explains sensitivity of synaptic changes to spike pattern, rate, and dendritic location. *PNAS* 109:3991–3996. (model)
-
-## 4. mGluR-dependent LTD
-
-**Mechanism.** Group I mGluR activation (DHPG or paired-pulse LFS) triggers local
-dendritic translation of Arc, STEP and MAP1B, which drives AMPAR endocytosis. Like
-L-LTP, it depends on protein synthesis, so it draws on the same translational
-machinery as capture.
-
-**Spec hook.** The §2 PRP pool. A depressive process that competes with
-potentiation for capture.
-
-**References.**
-- Oliet SHR, Malenka RC, Nicoll RA (1997). Two distinct forms of long-term depression coexist in CA1 hippocampal pyramidal cells. *Neuron* 18:969–982.
-- Huber KM, Kayser MS, Bear MF (2000). Role for rapid dendritic protein synthesis in hippocampal mGluR-dependent long-term depression. *Science* 288:1254–1257.
-- Waung MW, Pfeiffer BE, Nosyreva ED, Ronesi JA, Huber KM (2008). Rapid translation of Arc/Arg3.1 selectively mediates mGluR-dependent LTD through persistent increases in AMPAR endocytosis rate. *Neuron* 59:84–97.
 
 ## 5. Depotentiation and tag reset
 
@@ -131,24 +139,7 @@ abolish capture.
 - Sajikumar S, Frey JU (2004). Resetting of "synaptic tags" is time- and activity-dependent in rat hippocampal CA1 in vitro. *Neuroscience* 129:503–507. doi:10.1016/j.neuroscience.2004.08.014
 - Sajikumar S, Frey JU (2004). Late-associativity, synaptic tagging, and the role of dopamine during LTP and LTD. *Neurobiol Learn Mem* 82:12–25.
 
-## 6. Passive E-LTP and tag decay
-
-**Mechanism.** Without capture, E-LTP decays over 1–3 hr as inserted AMPARs are
-removed by constitutive, GluA2-dependent endocytosis. Even consolidated memories
-show an ongoing, decay-like forgetting process that blocking GluA2 removal
-prevents.
-
-**Spec hook.** τ_tag decay in Fig. 2 of the spec, and the volatile-memristor
-relaxation of §4.4.2. This is the baseline against which capture is measured.
-
-**References.**
-- Frey U, Morris RGM (1997). Synaptic tagging and long-term potentiation. *Nature* 385:533–536.
-- Redondo RL, Morris RGM (2011). Making memories last: the synaptic tagging and capture hypothesis. *Nat Rev Neurosci* 12:17–30.
-- Migues PV, Liu L, Archbold GEB, et al. (2016). Blocking synaptic removal of GluA2-containing AMPA receptors prevents the natural forgetting of long-term memories. *J Neurosci* 36:3481–3494. doi:10.1523/JNEUROSCI.3333-15.2016
-- Hardt O, Nader K, Nadel L (2013). Decay happens: the role of active forgetting in memory. *Trends Cogn Sci* 17:111–120.
-- Pastalkova E, Serrano P, Pinkhasova D, et al. (2006). Storage of spatial information by the maintenance mechanism of LTP. *Science* 313:1141–1144. (PKMζ maintenance. Contested by Volk LJ et al. 2013, *Nature* 493:420–423, and Lee AM et al. 2013, *Nature* 493:416–419.)
-
-## 7. Heterosynaptic depression
+## 6. Heterosynaptic depression
 
 **Mechanism.** Potentiation of a cluster of synapses depresses or shrinks nearby
 *unstimulated* synapses on the same dendritic segment. In CA1 this needs
@@ -167,7 +158,39 @@ normalization rule.
 - Chistiakova M, Bannon NM, Bazhenov M, Volgushev M (2014). Heterosynaptic plasticity: multiple mechanisms and multiple roles. *Neuroscientist* 20:483–498.
 - El-Boustani S, Ip JPK, Breton-Provencher V, et al. (2018). Locally coordinated synaptic plasticity of visual cortex neurons in vivo. *Science* 360:1349–1354. (cortex)
 
-## 8. Competition for plasticity-related proteins
+## 7. mGluR-dependent LTD
+
+**Mechanism.** Group I mGluR activation (DHPG or paired-pulse LFS) triggers local
+dendritic translation of Arc, STEP and MAP1B, which drives AMPAR endocytosis. Like
+L-LTP, it depends on protein synthesis, so it draws on the same translational
+machinery as capture.
+
+**Spec hook.** The §2 PRP pool. A depressive process that competes with
+potentiation for capture.
+
+**References.**
+- Oliet SHR, Malenka RC, Nicoll RA (1997). Two distinct forms of long-term depression coexist in CA1 hippocampal pyramidal cells. *Neuron* 18:969–982.
+- Huber KM, Kayser MS, Bear MF (2000). Role for rapid dendritic protein synthesis in hippocampal mGluR-dependent long-term depression. *Science* 288:1254–1257.
+- Waung MW, Pfeiffer BE, Nosyreva ED, Ronesi JA, Huber KM (2008). Rapid translation of Arc/Arg3.1 selectively mediates mGluR-dependent LTD through persistent increases in AMPAR endocytosis rate. *Neuron* 59:84–97.
+
+## 8. Passive E-LTP and tag decay
+
+**Mechanism.** Without capture, E-LTP decays over 1–3 hr as inserted AMPARs are
+removed by constitutive, GluA2-dependent endocytosis. Even consolidated memories
+show an ongoing, decay-like forgetting process that blocking GluA2 removal
+prevents.
+
+**Spec hook.** τ_tag decay in Fig. 2 of the spec, and the volatile-memristor
+relaxation of §4.4.2. This is the baseline against which capture is measured.
+
+**References.**
+- Frey U, Morris RGM (1997). Synaptic tagging and long-term potentiation. *Nature* 385:533–536.
+- Redondo RL, Morris RGM (2011). Making memories last: the synaptic tagging and capture hypothesis. *Nat Rev Neurosci* 12:17–30.
+- Migues PV, Liu L, Archbold GEB, et al. (2016). Blocking synaptic removal of GluA2-containing AMPA receptors prevents the natural forgetting of long-term memories. *J Neurosci* 36:3481–3494. doi:10.1523/JNEUROSCI.3333-15.2016
+- Hardt O, Nader K, Nadel L (2013). Decay happens: the role of active forgetting in memory. *Trends Cogn Sci* 17:111–120.
+- Pastalkova E, Serrano P, Pinkhasova D, et al. (2006). Storage of spatial information by the maintenance mechanism of LTP. *Science* 313:1141–1144. (PKMζ maintenance. Contested by Volk LJ et al. 2013, *Nature* 493:420–423, and Lee AM et al. 2013, *Nature* 493:416–419.)
+
+## 9. Competition for plasticity-related proteins
 
 **Mechanism.** When protein synthesis is limited, potentiating one input at the
 expense of another makes the other pathway's established LTP decay. Synapses
@@ -182,7 +205,7 @@ than an independent per-synapse gate.
 - Fonseca R, Nägerl UV, Morris RGM, Bonhoeffer T (2004). Competing for memory: hippocampal LTP under regimes of reduced protein synthesis. *Neuron* 44:1011–1020. doi:10.1016/j.neuron.2004.10.033
 - Fonseca R, Vabulas RM, Hartl FU, Bonhoeffer T, Nägerl UV (2006). A balance of protein synthesis and proteasome-dependent degradation determines the maintenance of LTP. *Neuron* 52:239–245.
 
-## 9. BCM sliding threshold and metaplasticity
+## 10. BCM sliding threshold and metaplasticity
 
 **Mechanism.** The LTD/LTP crossover point shifts with the recent history of
 postsynaptic activity. High prior activity raises the threshold, which favours
@@ -197,28 +220,6 @@ state per neuron or segment.
 - Abraham WC, Bear MF (1996). Metaplasticity: the plasticity of synaptic plasticity. *Trends Neurosci* 19:126–130.
 - Abraham WC (2008). Metaplasticity: tuning synapses and networks for plasticity. *Nat Rev Neurosci* 9:387–399.
 - Philpot BD, Sekhar AK, Shouval HZ, Bear MF (2001). Visual experience and deprivation bidirectionally modify the composition and function of NMDA receptors in visual cortex. *Neuron* 29:157–169.
-
-## 10. SWR-associated depression
-
-**Mechanism.** In mouse hippocampus, sharp-wave ripples during slow-wave states
-trigger long-lasting, NMDAR-dependent and pathway-specific synaptic depression.
-Suppressing ripples prevents the spontaneous downregulation of net synaptic
-weight and impairs learning of new memories. Across sleep, CA1 firing rates fall,
-and the size of that drop is predicted by NREM spindle/SWR incidence followed by
-REM. In cortex, Up states bias plasticity toward depression of inputs that do not
-drive the postsynaptic cell, while inputs that do drive it are spared.
-
-**Spec hook.** §4.5. The same SWR event that replays and captures the stored
-sequence also depresses the rest of the synapses. Replay therefore acts as
-selection (capture what is replayed, depress what is not), not only as
-potentiation.
-
-**References.**
-- Norimoto H, Makino K, Gao M, et al. (2018). Hippocampal ripples down-regulate synapses. *Science* 359:1524–1527. doi:10.1126/science.aao0702
-- Miyawaki H, Diba K (2016). Regulation of hippocampal firing by network oscillations during sleep. *Curr Biol* 26:893–902.
-- Grosmark AD, Mizuseki K, Pastalkova E, Diba K, Buzsáki G (2012). REM sleep reorganizes hippocampal excitability. *Neuron* 75:1001–1007.
-- González-Rueda A, Pedrosa V, Feord RC, Clopath C, Paulsen O (2018). Activity-dependent downscaling of subthreshold synaptic inputs during slow-wave-sleep-like activity in vivo. *Neuron* 97:1244–1252. doi:10.1016/j.neuron.2018.01.047 (cortex)
-- Lewis PA, Durrant SJ (2011). Overlapping memory replay during sleep builds cognitive schemata. *Trends Cogn Sci* 15:343–351.
 
 ## 11. Sleep-dependent renormalization (synaptic homeostasis hypothesis)
 
@@ -303,14 +304,14 @@ hippocampus-dependent memories.
 
 Zenke & Gerstner (2017) argue that compensatory processes must be fast (comparable
 to the Hebbian timescale). Biologically slow scaling (#12) alone cannot stabilize
-Hebbian growth. Fast candidates are #7, #9 and #10.
+Hebbian growth. Fast candidates are #3, #6 and #10.
 
 ## Candidates for tinyHippo (after S4–S6 tag/capture)
 
-1. **#6 + #5.** Passive tag decay plus LFS-driven active reset. Fills §2 directly
+1. **#8 + #5.** Passive tag decay plus LFS-driven active reset. Fills §2 directly
    and adds a second falsification arm.
-2. **#3 + #9.** Two-threshold `g_Ca` with a sliding θ_p. One extra state variable per segment.
-3. **#7.** Per-segment heterosynaptic conservation at `V_seg` granularity.
-4. **#10.** SWR-gated depression of non-replayed synapses. Needs ripple-epoch input,
+2. **#4 + #10.** Two-threshold `g_Ca` with a sliding θ_p. One extra state variable per segment.
+3. **#6.** Per-segment heterosynaptic conservation at `V_seg` granularity.
+4. **#3.** SWR-gated depression of non-replayed synapses. Needs ripple-epoch input,
    and any timescale compression factor must be stated.
 5. **#12.** Multiplicative scaling, only with a stated compression factor.

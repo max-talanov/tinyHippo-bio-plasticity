@@ -13,21 +13,23 @@ import numpy as np
 MS, S, MIN, HR, DAY, WK, YR = 1e-3, 1.0, 60.0, 3600.0, 86400.0, 604800.0, 3.156e7
 
 # (label, start_s, end_s, tail_end_s or None, colour)
-MECHANISMS = [
+# Rows are drawn in order of onset (start_s), ties broken by end_s, so the
+# bars form a staircase like figures/timescale_axis.png.
+MECHANISMS = sorted([
     ("Short-term depression",          10 * MS, 10 * S,  None,     "#2e6fa7"),
     ("Presynaptic inhibition (A1/GABA_B)", 50 * MS, 10 * MIN, 12 * HR, "#1f8fa0"),
+    ("SWR-associated depression",      100 * MS, 8 * HR, 3 * DAY,  "#3f8f6a"),
     ("NMDAR-LTD / STDP depression",    10 * S,  3 * HR,  None,     "#4a8c3a"),
-    ("mGluR-LTD (protein synthesis)",  5 * MIN, 1 * DAY, None,     "#6f8f2e"),
-    ("Depotentiation / tag reset",     1 * MIN, 1 * HR,  None,     "#a98a2e"),
+    ("Depotentiation / tag reset",     1 * MIN, 1 * HR,  None,     "#6f8f2e"),
+    ("Heterosynaptic depression",      1 * MIN, 2 * HR,  None,     "#a98a2e"),
+    ("mGluR-LTD (protein synthesis)",  5 * MIN, 1 * DAY, None,     "#c08a2a"),
     ("Passive E-LTP / tag decay",      30 * MIN, 4 * HR, None,     "#c4632f"),
-    ("Heterosynaptic depression",      1 * MIN, 2 * HR,  None,     "#b5533a"),
-    ("PRP competition",                30 * MIN, 8 * HR, None,     "#a8453f"),
-    ("BCM sliding threshold",          30 * MIN, 2 * DAY, None,    "#9a3f5c"),
-    ("SWR-associated depression",      100 * MS, 8 * HR, 3 * DAY,  "#a64541"),
-    ("Sleep renormalization (SHY)",    1 * HR,  1 * DAY, 2 * WK,   "#7d4a8a"),
-    ("Synaptic scaling",               12 * HR, 3 * DAY, None,     "#6b4e8c"),
+    ("PRP competition",                30 * MIN, 8 * HR, None,     "#b5533a"),
+    ("BCM sliding threshold",          30 * MIN, 2 * DAY, None,    "#a64541"),
+    ("Sleep renormalization (SHY)",    1 * HR,  1 * DAY, 2 * WK,   "#9a3f5c"),
+    ("Synaptic scaling",               12 * HR, 3 * DAY, None,     "#7d4a8a"),
     ("Pruning / active forgetting",    1 * DAY, 5 * WK,  1 * YR,   "#5a4f86"),
-]
+], key=lambda m: (m[1], m[2]))
 
 TICKS = [(1 * MS, "1 ms"), (100 * MS, "100 ms"), (1 * S, "1 s"), (1 * MIN, "1 min"),
          (1 * HR, "1 hr"), (1 * DAY, "1 day"), (1 * WK, "1 week"),
