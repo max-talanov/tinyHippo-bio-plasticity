@@ -3,7 +3,9 @@
 Bar extents are the time constants of hippocampal_plasticity_model.md §1 (seconds, log axis).
 Solid bar = characteristic duration; dotted tail = persistence after stabilization (row 6),
 recurrence (row 7) or the human range beyond the rodent one (row 8).
-Brackets on the right mark the two kinds of consolidation (model §1, terminology).
+Brackets on the right mark the two kinds of consolidation (model §1, terminology). The shaded band is
+the behavioural protein-synthesis-sensitive window of cellular consolidation (~6 h after learning;
+params.SLOW_TIMESCALES, unverified), drawn from 1 min to 6 h on the same axis.
 """
 import matplotlib
 matplotlib.use("Agg")
@@ -32,6 +34,10 @@ ax = fig.add_axes([0.25, 0.17, 0.59, 0.80])
 ax.set_xscale("log")
 ax.set_xlim(1.5e-4, 2e9)
 ax.set_ylim(len(ROWS) - 0.4, -0.8)
+PSI_WINDOW = (1 * MIN, 6 * HR)  # shaded over rows 4-6 (indices 3-5)
+ax.fill_between(PSI_WINDOW, 2.55, 5.45, color="#c1642f", alpha=0.08, lw=0, zorder=0)
+ax.text(PSI_WINDOW[0] / 1.3, 2.62, "protein-synthesis-sensitive window\n(behavioural, ~6 h; unverified)",
+        color="#c1642f", fontsize=11, ha="right", va="center")
 for g in GRID:
     ax.axvline(g, color="#dddddd", lw=1.2, zorder=0, ymax=0.97)
 for i, (lab, col, a, b, tail) in enumerate(ROWS):
@@ -51,7 +57,7 @@ def bracket(i0, i1, text, col):
             fontsize=13, va="center", ha="left", clip_on=False)
 
 
-bracket(4, 5, "cellular\nconsolidation\n(synaptic correlate,\nhypothesised;\n~0–6 h)", "#c1642f")
+bracket(4, 5, "cellular\nconsolidation\n(synaptic correlate,\nhypothesised;\n~0–6 h; any region)", "#c1642f")
 bracket(7, 7, "system\nconsolidation\n(days–years)", "#6b4a8a")
 
 ax.set_yticks([])

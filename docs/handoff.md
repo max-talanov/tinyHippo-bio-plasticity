@@ -69,13 +69,14 @@ Applied 2026-10-22: the memristive document uses the same terminology; system co
 standard, multiple-trace and trace-transformation accounts named); the cortical tier has its own
 cellular-consolidation (volatile-until-latched) step, an open device requirement. Fig. 1 regenerated
 (`figures/src/make_timescale_axis.py`); Fig. 3B relabelled "cellular consolidation" (raster patch, no
-source file); tier-map SVG updated (late-LTP stabilized ~4–8 h with persistence tail).
+source file). 2026-10-22: the tier-map SVG was removed as a duplicate of Fig. 1; the memristive document
+uses Fig. 1 plus its tier table. Fig. 1 now shades the ~6 h protein-synthesis-sensitive window.
+8. 2026-10-22: capture in `SegTag` is **gradual** (rate ∝ h(P)·T, soft PRP threshold), not instantaneous;
+   instantaneous capture is kept as a limiting case. S4 gets a time-resolved PRP-synthesis block, arm (d).
+   See `docs/plan.md` §2 and §3.
 Not yet applied (need a decision by the project owner):
-- S4: add a time-resolved PRP block (switch PRP production off at t_b = 0...8 h after induction, read
-  w_T late) so that the protein-synthesis-sensitivity window is a model output to compare with ~6 h.
-  With instantaneous capture in `SegTag` the window will be short; decide instantaneous vs gradual
-  capture before writing `SegTag.mod`. State whether the comparison target is the behavioural (~6 h)
-  or the slice late-LTP window.
+- (resolved 2026-10-22, decision 8) gradual capture and S4(d) are in `docs/plan.md`. Still open: the
+  comparison target for S4(d) (behavioural ~6 h vs slice late-LTP window) and sources for k_cap, n.
 
 ## Next steps
 

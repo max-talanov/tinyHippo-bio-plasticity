@@ -78,15 +78,34 @@ PV ──► PYR.soma (GABA_A)    BiS ──► PYR.apical_prox + basal (GABA_A)
    - `τ_v · dV_seg/dt = −V_seg + Σ wᵢ·sᵢ` (τ_v 10–30 ms)
    - `g_Ca(V_seg) = 1/(1 + K·exp(−λ·V_seg))`
    - tag set by a coincident pre/post event: `T ← T + g_Ca(V_seg)·[dSpike]`; `dT/dt = −T/τ_tag`
-   - PRP pool `P`: incremented by somatic burst events, decays with `τ_P`
-   - capture: if `P ≥ θ_PRP` while `T > 0`: `w_cap += κ·T`, and decay of `T` stops for that synapse
-   - `θ_PRP = 999` disables capture (the blocked-capture arm of the falsification test).
+   - PRP pool `P`: incremented by somatic burst events while synthesis is on, decays with `τ_P`:
+     `P ← P + ΔP·s(t)` per burst, `dP/dt = −P/τ_P`. `s(t) ∈ {0, 1}` is the protein-synthesis gate;
+     `s = 0` from `t_b` onward models a protein-synthesis inhibitor applied at `t_b` (S4(d)). Proteins
+     already made are not removed; they decay with `τ_P`.
+   - **gradual capture** (decided 2026-10-22, `docs/handoff.md` decision 8): captured weight grows at a
+     rate set by both tag and PRP, and captured tag leaves `T`:
+     ```
+     h(P)          = Pⁿ / (Pⁿ + θ_PRPⁿ)                (soft PRP threshold)
+     dw_cap/dt     =  k_cap · h(P) · T
+     dT/dt         = −T/τ_tag − k_cap · h(P) · T
+     ```
+     The protein-synthesis-sensitive window is then an output of the model (set by `τ_P`, `k_cap`,
+     `τ_tag`, `θ_PRP`, `n`), not an input. Why gradual: the protein-synthesis dependence of late-LTP and
+     of cellular consolidation declines over time rather than switching at one instant, and existing
+     tag/capture models treat the late phase as a variable relaxing over ~1 h or more (Clopath et al.
+     2008; Barrett et al. 2009; cited from memory, unverified). The spec's "discrete regime change"
+     (model §1, row 6) refers to the end state (captured weight no longer decays), which this keeps.
+   - instantaneous capture (the original design: when `P ≥ θ_PRP` and `T > 0`, `w_cap += κ·T`, `T → 0`)
+     is the limit `k_cap → ∞`, `n → ∞`. It is kept as a switch for comparison, not as the default.
+   - `θ_PRP = 999` disables capture (`h ≈ 0`; the blocked-capture arm of the falsification test).
+   - parameters `k_cap` and `n` have no source; they are swept in S4 (no values from memory).
 3. **STDP in the tag step:** ±20 ms window (A₊, A₋).
 
-Time scales: the slow module runs in **real units** (τ_tag 1–4 h). With CVODE and no
-events between sharp-wave events the ODEs are linear decays, so hours of simulated time
-should be cheap. This is a risk to check in S4; the fallback is to advance the slow
-state analytically between events.
+Time scales: the slow module runs in **real units** (τ_tag 1–4 h). With gradual capture the
+slow ODEs between events are no longer linear decays (`h(P)·T` couples them), but they are smooth
+and slow, so CVODE should take long steps; hours of simulated time should still be cheap. This is a
+risk to check in S4; the fallback is a numpy reference of the slow subsystem (also required by
+the S1-style verification rule) integrated between events.
 
 ## 3. Stages and acceptance criteria
 
@@ -96,10 +115,10 @@ state analytically between events.
 | **S1** | **Verify `TMSyn`** against the closed-form TM solution in numpy: 2-pulse and 20-pulse trains at 5, 20, 50 Hz | Relative error of every Δg < 1%; CVODE vs fixed dt = 25 µs differ < 2% |
 | **S2** | **STP signatures per pathway** (voltage clamp at −70 mV, PYR and each interneuron): paired-pulse ratio at ISI 20–500 ms; steady-state amplitude vs frequency | Sign of PPR−1 matches the expected class: SC→PYR mild, SC→PV depressing, PYR→OLM facilitating. Target values are taken from the literature (e.g. Markram et al. 1998; Losonczy et al. 2002 for PYR→OLM) **before** fitting. `U, τ_rec, τ_fac` fit by least squares with CIs |
 | **S3** | **STP × inhibition on PYR output.** Imposed 100–300 ms SC volley (theta-nested and ripple-like at ~150–200 Hz) through the full Tier-B circuit; each pathway's STP on/off (6 conditions) | Reports PYR spike count and latency, E/I conductance ratio over the volley, and the effective-weight `w·u·x` trace per pathway; ablating one pathway changes the output in the predicted direction |
-| **S4** | **Tag/capture, model Fig. 2.** Pathway T (subthreshold alone) receives K = 1…12 sharp-wave-like events at fixed spacing, with PYR driven by pathway S (Frey–Morris weak/strong design). Arms: normal capture vs `θ_PRP = 999` | (a) Tag amplitude per event and τ_tag recovered from the trace within 10%. (b) Captured arm shows a staircase after PRP crossing; blocked arm stays at baseline. (c) **Falsification:** PYR spike times during pathway-S volleys identical (to the sim dt) in both arms, since S is not plastic; only T's weight differs |
+| **S4** | **Tag/capture, model Fig. 2.** Pathway T (subthreshold alone) receives K = 1…12 sharp-wave-like events at fixed spacing, with PYR driven by pathway S (Frey–Morris weak/strong design). Arms: normal capture vs `θ_PRP = 999` | (a) Tag amplitude per event and τ_tag recovered from the trace within 10%. (b) Captured arm: `w_cap` rises once `P` approaches `θ_PRP` (a smoothed staircase; a sharp staircase only in the instantaneous limit); blocked arm stays at baseline. (c) **Falsification:** PYR spike times during pathway-S volleys identical (to the sim dt) in both arms, since S is not plastic; only T's weight differs. (d) **Time-resolved protein-synthesis block:** set `s = 0` at `t_b ∈ {0, 0.5, 1, 2, 4, 6, 8}` h after the strong (S) induction, plus a no-block control; read `w_cap` of T at 10 h and 24 h. Pass: retained `w_cap` is non-decreasing in `t_b`; the half-retention time `t_50` is reported with its CI (fit of a sigmoid in `t_b`; ≥ 5 seeds if release is stochastic), as a sweep over `k_cap` and `n`; the instantaneous-capture limit gives a step at the PRP-crossing time. `t_50` is **compared with**, not fitted to, the ~6 h behavioural window (`params.SLOW_TIMESCALES`, unverified), and the report states whether the comparison is to the behavioural or to a slice late-LTP window |
 | **S5** | **Graded `V_seg`**: scale NMDAR conductance 0–100%; optionally enable dendritic Na to test the `thr` dendritic spike | Captured-weight step shrinks continuously with NMDAR dose (model §3.4 prediction), not all-or-nothing. Dose–response with CI over seeds |
 | **S6** | **Forward vs reverse order.** Three SC afferent groups A, B, C onto the PYR; fire A→B→C and C→B→A with 3–5 ms spacing (ripple-compressed) | Reports the tag-amplitude pattern per group under STDP + STP for each order. Pilot only: with one PYR this tests synapse-level order sensitivity, not replay |
-| **S7** | **Parameter summary.** Table of fitted `U, τ_rec, τ_fac` per pathway, τ_tag, A±, PRP kinetics, with source, conditions and confidence intervals | Table in RESULTS.md; every value traceable to a run or a cited source |
+| **S7** | **Parameter summary.** Table of fitted `U, τ_rec, τ_fac` per pathway, τ_tag, A±, PRP kinetics (`τ_P`, `θ_PRP`, `k_cap`, `n`), with source, conditions and confidence intervals | Table in RESULTS.md; every value traceable to a run or a cited source |
 
 **Statistics:** stochastic-release runs use ≥5 seeds, reported as mean ± SD. Runs are
 bit-identical at fixed seed, config and thread count, so rerunning an identical config adds
@@ -127,6 +146,7 @@ Each result becomes a new numbered section in [RESULTS.md](../RESULTS.md); older
 |---|---|
 | Literature STP parameters vary with species, age, [Ca²⁺]ₒ and temperature | Record source and conditions for each value in `params.py`; fit to the S2 targets, not to remembered numbers |
 | One PYR stands for an ensemble, so PYR→INT drive is under- or over-scaled | Report the contact-count scaling factor; Tier C as a check on S3 |
-| Hours of simulated time slow the S4 runs | Linear decays between events; analytic fallback; report wall-clock |
+| Hours of simulated time slow the S4 runs | Smooth slow ODEs between events (CVODE long steps); numpy reference between events as fallback; report wall-clock |
+| Gradual-capture parameters `k_cap`, `n` and `τ_P` have no source | Sweep them in S4(d) and report `t_50` sensitivity; do not tune them to hit 6 h |
 | NMDA/Mg²⁺ and `V_seg` parameters (K, λ, τ_v) are not constrained by the spec | Sweep them in S5 and report sensitivity, not a single value |
 | Memristive-implementation §5.2 device data does not show graded SET | S5 predicts the graded response from the biology; it does not validate the device |

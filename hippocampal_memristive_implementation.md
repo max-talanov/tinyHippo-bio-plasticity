@@ -28,13 +28,11 @@ specific circuit primitive.
 | Sharp-wave-ripple replay | ripple 100–300 ms, recurs over hours–days | Compressed replay packs sequence elements only a few milliseconds apart — this is the number that actually sizes circuit timing budgets in §4 of the companion hardware document (`docs/neuron_model_optimization.md`). |
 | System consolidation | days–weeks (rodent) to months–years (human) | Fully clocked-digital territory; no continuous-time requirement whatsoever. |
 
-### 1.1 Interactive timescale map
+### 1.1 Tier assignment
 
-The same eight stages, redrawn and colored by which memristor tier implements them (§6): **blue** = quick/organic, hippocampal-local; **purple** = replay, the stage that touches both tiers at once; **orange** = slow/inorganic, cortical.
+The eight processes on one time axis are model Fig. 1 (`figures/timescale_axis.png`). The table assigns each to the memristor tier that implements it (§6): quick/organic (hippocampal-local), the replay bridge that touches both tiers, or slow/inorganic (cortical).
 
-![Timescale map: eight stages on a log time axis from 1 ms to 10 years, colored by memristor tier — blue for quick/organic stages from neurotransmission through late-LTP, purple for the replay stage that bridges both tiers, orange for system consolidation on the slow/inorganic tier.](figures/timescale_interactive_map.svg)
-
-*Fig. 1′ — Static rendering of model Fig. 1's timescale axis, colored by memristor tier per §6. Use the table below to jump to a stage's section.*
+![The eight plasticity and memory processes on one logarithmic time axis (model Fig. 1).](figures/timescale_axis.png)
 
 | Stage | Time constant | Tier | Jump to |
 |---|---|---|---|
@@ -43,7 +41,7 @@ The same eight stages, redrawn and colored by which memristor tier implements th
 | Ca²⁺/kinase cascades | ~1 s–5 min | Quick (organic) | model §3.4 |
 | [AMPAR trafficking / early-LTP](#2-synaptic-tagging-and-capture-as-a-volatile-memristor-circuit) | ~1–30 min, decays over 1–3 hr | Quick (organic) | [§2](#2-synaptic-tagging-and-capture-as-a-volatile-memristor-circuit) |
 | [Synaptic tagging & capture](#2-synaptic-tagging-and-capture-as-a-volatile-memristor-circuit) | tag set 1–2 min, decays τ≈1–4 hr | Quick (organic) | [§2](#2-synaptic-tagging-and-capture-as-a-volatile-memristor-circuit) |
-| [Transcription / late-LTP](#6-system-consolidation-replay-as-a-volatile-to-non-volatile-handoff) | onset ~30–60 min, stabilized ~4–8 hr; persists days or longer | Quick (organic) | [§6](#6-system-consolidation-replay-as-a-volatile-to-non-volatile-handoff) |
+| [Transcription / late-LTP](#6-system-consolidation-replay-as-a-volatile-to-non-volatile-handoff) | onset ~30–60 min, stabilized ~4–8 hr; persists days or longer | Quick (organic); cortical counterpart on the slow tier (§6) | [§6](#6-system-consolidation-replay-as-a-volatile-to-non-volatile-handoff) |
 | [Sharp-wave-ripple replay](#6-system-consolidation-replay-as-a-volatile-to-non-volatile-handoff) | ripple 100–300 ms, recurs over hours–days | Bridge (organic → inorganic) | [§6](#6-system-consolidation-replay-as-a-volatile-to-non-volatile-handoff) |
 | [System consolidation](#6-system-consolidation-replay-as-a-volatile-to-non-volatile-handoff) | days–weeks (rodent) to months–years (human) | Slow (inorganic) | [§6](#6-system-consolidation-replay-as-a-volatile-to-non-volatile-handoff) |
 
