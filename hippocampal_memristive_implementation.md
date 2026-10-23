@@ -1,6 +1,6 @@
 # Hippocampal Plasticity Model: Memristive Circuit Implementation
 
-This document specifies hardware realizations — memristive and digital — of the model described in
+This document specifies the neuron architecture (§7, the dendritic-convolution pipeline) and the hardware realizations — memristive and digital — of the model described in
 [hippocampal_plasticity_model.md](hippocampal_plasticity_model.md) (cited below as "model §n"). Section
 references without a prefix are to this document. Further hardware-feasibility detail is in
 [docs/neuron_model_optimization.md](docs/neuron_model_optimization.md) (the "companion hardware document").
@@ -36,9 +36,9 @@ The eight processes on one time axis are model Fig. 1 (`figures/timescale_axis.p
 
 | Stage | Time constant | Tier | Jump to |
 |---|---|---|---|
-| Neurotransmission (AMPA/NMDA gating) | ~0.5–5 ms | Quick (organic) | model §3.1 |
-| Short-term plasticity | ~10 ms–1 s | Quick (organic) | model §3.4 |
-| Ca²⁺/kinase cascades | ~1 s–5 min | Quick (organic) | model §3.4 |
+| Neurotransmission (AMPA/NMDA gating) | ~0.5–5 ms | Quick (organic) | §7.1 |
+| Short-term plasticity | ~10 ms–1 s | Quick (organic) | model §2.1, §7.4 |
+| Ca²⁺/kinase cascades | ~1 s–5 min | Quick (organic) | model §2.1, §7.4 |
 | [AMPAR trafficking / early-LTP](#2-synaptic-tagging-and-capture-as-a-volatile-memristor-circuit) | ~1–30 min, decays over 1–3 hr | Quick (organic) | [§2](#2-synaptic-tagging-and-capture-as-a-volatile-memristor-circuit) |
 | [Synaptic tagging & capture](#2-synaptic-tagging-and-capture-as-a-volatile-memristor-circuit) | tag set 1–2 min, decays τ≈1–4 hr | Quick (organic) | [§2](#2-synaptic-tagging-and-capture-as-a-volatile-memristor-circuit) |
 | [Transcription / late-LTP](#6-system-consolidation-replay-as-a-volatile-to-non-volatile-handoff) | onset ~30–60 min, stabilized ~4–8 hr; persists days or longer | Quick (organic); cortical counterpart on the slow tier (§6) | [§6](#6-system-consolidation-replay-as-a-volatile-to-non-volatile-handoff) |
@@ -53,7 +53,7 @@ The falsification test of model §2 (model Fig. 2: the weight distribution stays
 
 ## 3. Stage-by-stage feasibility
 
-The three-stage pipeline of model §3 — postsynaptic threshold, OR-gated refractory junction, somatic summation — is treated in the companion hardware document as an information-reduction pipeline, and each stage is a candidate site for replacing an expensive analog circuit with a cheap thresholding one. The model §3.3 topology maps onto circuit primitives as follows: each first-tier junction is a plain wired-OR (§4.2 of the companion document), and the repeated `th/rp` primitive is the reusable leaf cell specified there.
+The three-stage pipeline of §7 — postsynaptic threshold, OR-gated refractory junction, somatic summation — is treated in the companion hardware document as an information-reduction pipeline, and each stage is a candidate site for replacing an expensive analog circuit with a cheap thresholding one. The §7.3 topology maps onto circuit primitives as follows: each first-tier junction is a plain wired-OR (§4.2 of the companion document), and the repeated `th/rp` primitive is the reusable leaf cell specified there.
 
 | Stage | Circuit primitive | Feasibility | Main open risk |
 |---|---|---|---|
@@ -66,15 +66,15 @@ Three of the four stages are near off-the-shelf. The junction/tag stage is the e
 
 ## 4. `V_seg` as a circuit block
 
-`V_seg` (model §3.4) is one added analog block per `thr` unit (a leaky-integrator capacitor plus a differential-pair sigmoid stage, both standard sub-threshold-CMOS primitives) driving a graded-amplitude SET pulse into the same volatile memristor proposed as the tag element in §2, instead of a fixed-height pulse. The open risk is whether that memristor's SET response is graded over a useful amplitude range — parallel to the `τ_rf` variability already flagged for the junction stage, but along the amplitude axis.
+`V_seg` (model §2.1) is one added analog block per `thr` unit (a leaky-integrator capacitor plus a differential-pair sigmoid stage, both standard sub-threshold-CMOS primitives) driving a graded-amplitude SET pulse into the same volatile memristor proposed as the tag element in §2, instead of a fixed-height pulse. The open risk is whether that memristor's SET response is graded over a useful amplitude range — parallel to the `τ_rf` variability already flagged for the junction stage, but along the amplitude axis.
 
 ## 5. Tag-element implementations: digital and non-digital
 
-Model §2 and model §3.4 specify the tag element at the level of dynamics, independent of device technology. The junction stage (§3) admits two implementation options for its own `τ_rf` timer — a wired-OR/counter FSM or a volatile memristor — and the tag element admits the same choice. §5.1 specifies the digital option; §5.2 specifies a non-digital (memristive) candidate under active development.
+Model §2 and §2.1 specify the tag element at the level of dynamics, independent of device technology. The junction stage (§3) admits two implementation options for its own `τ_rf` timer — a wired-OR/counter FSM or a volatile memristor — and the tag element admits the same choice. §5.1 specifies the digital option; §5.2 specifies a non-digital (memristive) candidate under active development.
 
 ### 5.1 Digital implementation
 
-A fully digital tag/capture circuit uses: a multi-bit register per tag site, holding the tag amplitude; a down-counter clocked by a slow divider, decrementing the register at a rate set to reach zero after `τ_tag` (an 8–12 bit register decremented roughly once per 1–15 minutes covers the `τ_tag ≈ 1–4 hr` range); and a digital comparator that checks the register against zero before each decrement. Capture is a single conditional write: if the PRP-threshold signal (already sampled at low-second resolution per §1's table, well within reach of a digital sampler) crosses its set point while the register is still nonzero, the register's current value is copied into a separate, non-decrementing capture register and the down-counter is disabled for that site; if the PRP-threshold signal has not crossed by the time the register reaches zero, the tag register clears and no capture occurs. `V_seg`'s graded tag amplitude (model §3.4) sets the register's initial loaded value rather than a fixed constant, and the falsification test in model §2 (flat weight distribution when capture is blocked, replay quality unaffected) applies unchanged by disabling the conditional-write path. This circuit uses only standard cells — register, down-counter, comparator, clock divider — with no memristor, retention variability, or device characterization; each site's `τ_tag` is set by a clock-divider ratio, deterministic and identical across sites. The cost is area: one register, counter, and comparator per tag site, versus one two-terminal memristor in the non-digital route of §5.2.
+A fully digital tag/capture circuit uses: a multi-bit register per tag site, holding the tag amplitude; a down-counter clocked by a slow divider, decrementing the register at a rate set to reach zero after `τ_tag` (an 8–12 bit register decremented roughly once per 1–15 minutes covers the `τ_tag ≈ 1–4 hr` range); and a digital comparator that checks the register against zero before each decrement. Capture is a single conditional write: if the PRP-threshold signal (already sampled at low-second resolution per §1's table, well within reach of a digital sampler) crosses its set point while the register is still nonzero, the register's current value is copied into a separate, non-decrementing capture register and the down-counter is disabled for that site; if the PRP-threshold signal has not crossed by the time the register reaches zero, the tag register clears and no capture occurs. `V_seg`'s graded tag amplitude (model §2.1) sets the register's initial loaded value rather than a fixed constant, and the falsification test in model §2 (flat weight distribution when capture is blocked, replay quality unaffected) applies unchanged by disabling the conditional-write path. This circuit uses only standard cells — register, down-counter, comparator, clock divider — with no memristor, retention variability, or device characterization; each site's `τ_tag` is set by a clock-divider ratio, deterministic and identical across sites. The cost is area: one register, counter, and comparator per tag site, versus one two-terminal memristor in the non-digital route of §5.2.
 
 ### 5.2 Non-digital implementation: copper-aspirinate memristors
 
@@ -92,7 +92,7 @@ What system consolidation is defined by matters for the hardware reading (model 
 
 **Slow tier: inorganic non-volatile memristors, at scale.** System consolidation makes the memory supported by a much larger, distributed population of cortical synapses — a fan-out, not a copy. Themis Prodromakis's inorganic (metal-oxide) memristor crossbars are the complementary device for that side: individually slower to switch and non-volatile once set, but fabricated at silicon densities reaching on the order of 10⁶ devices per chip. What this tier contributes is not per-device sophistication but sheer number — the same property that lets a sparse hippocampal representation drive a large population of stable cortical sites.
 
-Cortical synapses undergo cellular consolidation of their own (model §4): a cortical change is labile until a local, protein-synthesis-dependent step stabilizes it. The slow tier therefore cannot be a write-once store in which every SET pulse is permanent. Each cortical site needs a labile state that decays unless enough replay passes arrive to latch it — the cortical counterpart of tag/capture. Whether a single inorganic device shows this volatile-until-latched behavior, or a volatile and a non-volatile device must be paired per site, is an open device requirement.
+Cortical synapses undergo cellular consolidation of their own (model §3): a cortical change is labile until a local, protein-synthesis-dependent step stabilizes it. The slow tier therefore cannot be a write-once store in which every SET pulse is permanent. Each cortical site needs a labile state that decays unless enough replay passes arrive to latch it — the cortical counterpart of tag/capture. Whether a single inorganic device shows this volatile-until-latched behavior, or a volatile and a non-volatile device must be paired per site, is an open device requirement.
 
 **Replay as the handoff mechanism.** Each SWR event (§1: 100–300 ms, recurring over hours–days) replays a compressed version of a stored sequence, re-driving the same volatile organic tag sites that stored it originally. Repeated replay is the network-level equivalent of the PRP-threshold capture signal in §2: each pass is one more SET pulse toward a target inorganic memristor, and once enough passes have accumulated, that cortical-side device latches into its own non-volatile state — the same discrete regime change §1 assigns to transcription/late-LTP, now occurring at cortical sites: the slow tier's own cellular consolidation. Before enough replay has occurred, recall depends on the fast organic tier, and the memory is lost if the organic trace decays uncaptured; after, recall no longer depends on the organic device's state. That loss of dependence — not erasure of the organic trace — is the hardware reading of system consolidation.
 
@@ -101,8 +101,8 @@ Cortical synapses undergo cellular consolidation of their own (model §4): a cor
 | Process (§1) | Time constant | Hippocampal / quick tier — organic volatile memristor (Erokhin) | Cortical / slow tier — inorganic non-volatile memristor (Prodromakis) |
 |---|---|---|---|
 | Neurotransmission (AMPA/NMDA gating) | ~0.5–5 ms | Upstream of any memristive state — sets comparator bandwidth only | — |
-| Short-term plasticity | ~10 ms–1 s | Organic memristor's own fast conductance dynamics, alongside `V_seg`/dSpike (model §3.4) | — |
-| Ca²⁺/kinase cascades | ~1 s–5 min | Sets tag-induction amplitude (`tag_amplitude`, model §3.4) — the SET pulse into the organic device | — |
+| Short-term plasticity | ~10 ms–1 s | Organic memristor's own fast conductance dynamics, alongside `V_seg`/dSpike (model §2.1) | — |
+| Ca²⁺/kinase cascades | ~1 s–5 min | Sets tag-induction amplitude (`tag_amplitude`, model §2.1) — the SET pulse into the organic device | — |
 | AMPAR trafficking / early-LTP | ~1–30 min, decays 1–3 hr | The organic device's own relaxing low-resistance state (§2, §5.2 parent complex) | — |
 | Synaptic tagging & capture | tag set 1–2 min, decay τ≈1–4 hr | Model Fig. 2's decay/capture dynamic, entirely within the organic device — PRP-threshold crossing is the capture event | — |
 | Transcription / late-LTP | onset 30–60 min, stabilized ~4–8 hr; persists days or longer | Captured, stabilized organic-device state, held locally at the hippocampal synapse (hippocampal cellular consolidation) | Same regime change at cortical sites when replay latches them (cortical cellular consolidation) |
@@ -112,6 +112,140 @@ Cortical synapses undergo cellular consolidation of their own (model §4): a cor
 Everything through late-LTP is a hippocampal-synapse-local, organic-volatile story — nothing inorganic is involved yet. Replay is the only process that touches both tiers at once: it reads the stabilized organic state and writes it, pulse by pulse, into the cortical inorganic array, which is why system consolidation (days to years) is orders of magnitude slower than tagging and capture (minutes to hours) — it is rate-limited by how often replay revisits a given trace, not by either device's intrinsic switching speed.
 
 **Open risk.** This is an architectural hypothesis, not a demonstrated circuit: it requires a working interface between an organic volatile array and a much larger inorganic non-volatile array, with the replay-driven SET-accumulation rate on the inorganic side calibrated against the days-or-longer system-consolidation timescale in §1's table — a two-technology integration problem on top of the single-device characterization risks already flagged in §4 and §5.2, plus the volatile-until-latched requirement on the cortical device above.
+
+## 7. The dendritic-convolution neuron architecture
+
+![Reference topology for the dendritic-convolution pipeline: per-synapse threshold units feed a two-level hierarchy of OR-gated refractory junctions (each level with its own 5–10 ms τ_rf), converging on a soma that also receives a direct, dendritic-bypass inhibitory input, followed by a fixed-delay axon stage.](figures/dendritic_convolution.png)
+
+*Fig. I1 — High-level neuron architecture, shown as two layers over the same physical topology:
+(A) synapse and dendritic-spike generation, and the timescales of dendritic-spike propagation along the
+dendritic tree; (B) synaptic homeostasis, short-term plasticity, and neuromodulation-driven tagging —
+through E-LTP, L-LTP, and replay — to consolidation, each mapped to the neuronal compartment where it
+occurs. Panel B's somatic box reads "cellular consolidation": the single-neuron process (E-LTP →
+L-LTP); system consolidation is a network process (model §3).*
+
+### 7.1 Layer A — dendritic-spike timescales
+
+Signals move through three physical stages, each with its own characteristic delay: synaptic areas
+generate dendritic spikes in about 1 ms; two levels of dendritic junctions integrate those spikes over
+5–10 ms per level; the soma converts the result into an output spike over a further 5–10 ms. The model
+treats this as a three-stage information-reduction pipeline — postsynaptic threshold, OR-gated
+refractory junction, somatic summation.
+
+### 7.2 Layer B — learning mechanisms mapped to the architecture
+
+The same three compartments host the learning mechanisms of model §1 and model §2:
+
+- **Synaptic areas** receive two distinct inputs — excitatory drive and a separate neuromodulatory
+  input — and are where synaptic homeostasis (activity-dependent weight decay), short-term plasticity,
+  and neuromodulation-triggered tagging take place.
+- **Junctions** implement the OR-plus-refractory primitive (§7.3).
+- **The soma** is where E-LTP and L-LTP — the synaptic correlate of cellular consolidation — resolve for
+  a single neuron; an ensemble of somas firing together implements sharp-wave-ripple replay, and
+  repeated replay across the network is the proposed driver of system consolidation (model §3).
+
+### 7.3 Reference topology, block by block
+
+The figure specifies a concrete two-cluster instance, described block by block below.
+
+**Excitatory side.** `Cluster1` groups six excitatory synapses (`ex_syn0`…`ex_syn4`, `ex_synN`);
+`Cluster2` groups three more (`ex_syn0`, `ex_syn1`, `ex_synN`) — two independent dendritic segments,
+sized differently, which is itself a statement that the pipeline does not assume uniform fan-in per
+branch. Every excitatory synapse feeds its own per-synapse `thr` unit in the leftmost, **1 ms** column —
+the stage-1 postsynaptic threshold, instantiated once per synapse, not shared. Within `Cluster1`, two of
+the six threshold outputs (`ex_syn2`, `ex_syn3`) are drawn joining on a short local wire before entering
+the junction; the other four converge on the same junction along separate wires. This is a
+wiring-topology detail, not a functional one — all six thresholded outputs feed the same first-tier
+junction, which is a plain OR: the diagram's local pairing of two wires versus four individual ones has
+no effect on the OR's logic, only on layout.
+
+**Multi-level junction hierarchy.** The junction stage generalizes to `N` tiers: each tier's junctions
+take the previous tier's `jSpike` outputs as their inputs, applying the same OR-plus-refractory
+primitive at every level, with tier count set by the dendritic-tree depth to be modeled. The reference
+diagram specifies the `N = 2` case as a concrete, minimal instance: each cluster's thresholded outputs
+converge on its *own* first-tier `junction th/rp`, in the first **5–10 ms** column — one junction
+instance per cluster, each carrying an independently-settable `τ_rf` in that range — and both
+first-tier junctions' outputs converge on a single second-tier `junction th/rp`, in the second
+**5–10 ms** column. The same `th/rp` primitive appears three times in this two-tier instance (twice at
+tier 1, once at tier 2) with identical internal structure and independently tunable timing per
+instance, which extends to any `N` by replicating the primitive. The worst-case synapse-to-soma latency
+contributed by the hierarchy is `N` stacked `τ_rf` periods; for the diagram's `N = 2` at 5–10 ms per
+level, this is 10–20 ms.
+
+**Inhibitory bypass.** `Cluster3` (`in_syn0`, `in_syn1`, `in_synN`) connects directly to the
+`Soma th/rp` block with a single wire each, passing through no `thr` unit and no junction at all. This
+is the diagram's explicit statement that fast, proximal/perisomatic inhibition is exempt from the
+threshold-and-refractory pipeline that every excitatory input must pass through — consistent with
+basket-cell-type inhibition acting close to the soma rather than being integrated dendritically.
+
+**Somatic stage and output.** The second-tier junction's output and `Cluster3`'s direct inhibitory lines
+both arrive at `Soma th/rp`, which is the same threshold-plus-refractory primitive again, just with a
+different fan-in, a different threshold, and (presumably) a different `τ_rf`, implementing differential
+E/I summation. Its output feeds a final `axon delay` block, drawn as a separate stage outside the soma
+and outside all `τ_rf`-scale dynamics — a fixed propagation delay applied only after the somatic
+decision has already been made, decoupling millisecond-scale dendritic computation from downstream
+conduction latency.
+
+### 7.4 Graded synaptic-potential state per segment (`V_seg`)
+
+*The plasticity rule itself is model §2.1; this subsection places it in the architecture.*
+
+Each `thr` unit reduces its segment's drive to a single bit the instant it crosses threshold,
+discarding the graded depolarization that led up to that crossing. But NMDA-receptor conductance is
+voltage-dependent (Mg²⁺-block relief follows a sigmoid of local depolarization; Jahr & Stevens, 1990),
+so the calcium influx driving tag-setting in model §2 scales continuously with subthreshold depolarization
+rather than with a single all-or-nothing spike — consistent with voltage-based plasticity models
+(Clopath, Büsing, Vasilaki & Gerstner, *Nat. Neurosci.* 13:344–352, 2010) and the calcium-control
+hypothesis (Lisman, 1989; Shouval, Bear & Cooper, 2002): induction *strength*, not only induction
+occurrence, sets the outcome.
+
+`V_seg` is one continuous state per dendritic segment (per `thr` unit, not per synapse), a leaky
+integration of the segment's synaptic input carried alongside the existing boolean `thr` output:
+
+```
+τ_v · dV_seg/dt = −V_seg + Σ_i w_i · s_i(t)
+```
+
+with `τ_v` in the 10–30 ms range already assigned to short-term plasticity in model §1. A sigmoid gain
+`g_Ca(V_seg) = 1/(1 + K·exp(−λ·V_seg))`, patterned on the NMDAR unblock curve, converts `V_seg` into a
+tag-induction amplitude: `tag_amplitude ∝ g_Ca(V_seg) · [dSpike fired]`. This leaves model §2's time-domain
+claims (`τ_tag`, the capture gate, the falsification test) unmodified — only the tag's *initial height*
+becomes graded instead of fixed.
+
+Because `V_seg` is shared across all synapses on one segment, several individually subthreshold
+synapses can jointly drive it into the steep part of `g_Ca` without any one of them firing a dSpike —
+giving synaptic clustering a mechanistic channel, voltage-dependent cooperativity, alongside its
+wiring-based one. It predicts a companion falsification test: dose-dependent partial NMDAR blockade
+should shrink captured-weight step size continuously, rather than switching captured synapses to
+uncaptured all-or-nothing.
+
+### 7.5 Passive EPSP current versus dendritic spikes in somatic spike generation
+
+Both `thr` and `V_seg` carry dendritic-spike-related current to the soma. A second, parallel pathway is
+passive electrotonic spread of the EPSP via axial current, independent of any dendritic spike.
+
+A single spine-level passive EPSP reaching the soma is 0.1–2 mV, against a 15–20 mV gap from rest to
+somatic threshold — roughly 1–5% of what firing requires per event, so reaching threshold this way alone
+needs summation across tens to hundreds of quasi-coincident inputs. A dendritic spike delivers 5–15 mV
+per event, one to two orders of magnitude more — which is why the pipeline digitizes the `thr`
+threshold-crossing event rather than the raw EPSP waveform. Dendritic democratization (Magee & Cook,
+2000; Andrasfalvy & Magee, 2001) means unitary conductance scales with distance from the soma, so a
+passive, non-boosted EPSP stays a graded, spatially-distributed, always-on contribution regardless of
+whether any given segment's `thr` fires.
+
+In the topology as specified (§7.3), every excitatory synapse routes through its segment's `thr` unit
+before reaching the junction hierarchy or the soma; `Cluster3`'s inhibitory line is the only bypass,
+justified by perisomatic targeting, and has no excitatory counterpart. The pipeline represents
+coincident threshold-crossing input (`thr`, junctions) and cooperative subthreshold drive toward tag
+induction (`V_seg`, §7.4) — it does not represent subthreshold input summed linearly toward the somatic
+threshold itself.
+
+For this pipeline's target function — coincidence detection and timing (the ±20 ms STDP window,
+tag/capture, SWR replay-order fidelity) — the dendritic spike is the dominant driver of somatic firing,
+and the boolean `thr` abstraction is the right compression. A graded, rate-coded excitatory
+contribution to the somatic decision, independent of any single coincidence event, is not represented
+here; adding it would need a third input to `Soma th/rp` — a low-pass-filtered sum of excitatory `V_seg`
+states — which is outside `V_seg`'s scope as specified in §7.4 (tag induction only).
 
 ---
 

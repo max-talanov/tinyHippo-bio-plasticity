@@ -1,6 +1,6 @@
 # Plan: minimal NEURON circuit for short-term plasticity and tag/capture dynamics
 
-**Model:** [hippocampal_plasticity_model.md](../hippocampal_plasticity_model.md) §1, §2, §3.3, §3.4.
+**Model:** [hippocampal_plasticity_model.md](../hippocampal_plasticity_model.md) §1, §2, §2.1; architecture: [hippocampal_memristive_implementation.md](../hippocampal_memristive_implementation.md) §7.3, §7.4.
 Milestone 2 models the synaptic correlate of *cellular* consolidation (model §1, terminology);
 system consolidation is out of scope.
 
@@ -16,7 +16,7 @@ simulated in real (biological) units with no time compression.
 
 1. **Milestone 1 (S0–S3): short-term plasticity (STP)**, 10 ms–1 s, for each synapse class.
 2. **Milestone 2 (S4–S6): tag/capture**, minutes–hours: the spec's Fig. 2, its two
-   falsification tests, and the graded `V_seg` mechanism of model §3.4.
+   falsification tests, and the graded `V_seg` mechanism of model §2.1.
 
 Out of scope: emergent sharp-wave-ripple generation, replay ordering as a network
 property, and anything that needs hundreds of cells.
@@ -36,7 +36,7 @@ The three interneurons cover the three canonical CA1 inhibitory motifs:
 
 | Interneuron | Motif | Target on PYR | Input | Role |
 |---|---|---|---|---|
-| **PV basket** | feedforward, perisomatic | soma | Schaffer collateral (SC) + PYR | The model's `Cluster3` bypass (model §3.3): inhibition that skips the threshold/junction pipeline |
+| **PV basket** | feedforward, perisomatic | soma | Schaffer collateral (SC) + PYR | The model's `Cluster3` bypass (implementation §7.3): inhibition that skips the threshold/junction pipeline |
 | **Bistratified** | feedforward, dendritic | proximal apical (SR) + basal (SO) | SC + PYR | Dendritic inhibition acting on `V_seg` of the segment that carries SC synapses |
 | **O-LM** | feedback, dendritic | distal apical (SLM) | PYR only | Facilitating feedback onto a segment separate from SC; a pure STP readout |
 
@@ -61,11 +61,11 @@ PV ──► PYR.soma (GABA_A)    BiS ──► PYR.apical_prox + basal (GABA_A)
 
 - **PYR:** soma + basal + apical_prox + apical_dist (4 sections). Na, Kdr, K_A and
   h conductances in the soma. Dendrites start passive; Na/K are added only to test the
-  dendritic-spike `thr` of model §3.1 (S5).
+  dendritic-spike `thr` of implementation §7.1 (S5).
 - **Interneurons:** one compartment each, Na/Kdr, with class-specific rheobase and
   membrane τ.
 - **Synapses:** AMPA (Exp2Syn kinetics) and NMDA with the Jahr–Stevens Mg²⁺ block
-  (needed for model §3.4); GABA_A.
+  (needed for model §2.1); GABA_A.
 
 ### Mechanisms to write (NMODL, `NET_RECEIVE`-based, CVODE-safe via `state_discontinuity`)
 
@@ -74,7 +74,7 @@ PV ──► PYR.soma (GABA_A)    BiS ──► PYR.apical_prox + basal (GABA_A)
    Between spikes: `du/dt = −u/τ_fac`, `dx/dt = (1−x)/τ_rec`. Parameters `U, τ_rec, τ_fac`
    per pathway. Optional stochastic release: N sites, Bernoulli with `p = u⁺·x⁻`
    (Random123, fixed seed).
-2. **`SegTag.mod`** (model §2 + §3.4), one instance per tagged synapse group:
+2. **`SegTag.mod`** (model §2 + §2.1), one instance per tagged synapse group:
    - `τ_v · dV_seg/dt = −V_seg + Σ wᵢ·sᵢ` (τ_v 10–30 ms)
    - `g_Ca(V_seg) = 1/(1 + K·exp(−λ·V_seg))`
    - tag set by a coincident pre/post event: `T ← T + g_Ca(V_seg)·[dSpike]`; `dT/dt = −T/τ_tag`
@@ -116,7 +116,7 @@ the S1-style verification rule) integrated between events.
 | **S2** | **STP signatures per pathway** (voltage clamp at −70 mV, PYR and each interneuron): paired-pulse ratio at ISI 20–500 ms; steady-state amplitude vs frequency | Sign of PPR−1 matches the expected class: SC→PYR mild, SC→PV depressing, PYR→OLM facilitating. Target values are taken from the literature (e.g. Markram et al. 1998; Losonczy et al. 2002 for PYR→OLM) **before** fitting. `U, τ_rec, τ_fac` fit by least squares with CIs |
 | **S3** | **STP × inhibition on PYR output.** Imposed 100–300 ms SC volley (theta-nested and ripple-like at ~150–200 Hz) through the full Tier-B circuit; each pathway's STP on/off (6 conditions) | Reports PYR spike count and latency, E/I conductance ratio over the volley, and the effective-weight `w·u·x` trace per pathway; ablating one pathway changes the output in the predicted direction |
 | **S4** | **Tag/capture, model Fig. 2.** Pathway T (subthreshold alone) receives K = 1…12 sharp-wave-like events at fixed spacing, with PYR driven by pathway S (Frey–Morris weak/strong design). Arms: normal capture vs `θ_PRP = 999` | (a) Tag amplitude per event and τ_tag recovered from the trace within 10%. (b) Captured arm: `w_cap` rises once `P` approaches `θ_PRP` (a smoothed staircase; a sharp staircase only in the instantaneous limit); blocked arm stays at baseline. (c) **Falsification:** PYR spike times during pathway-S volleys identical (to the sim dt) in both arms, since S is not plastic; only T's weight differs. (d) **Time-resolved protein-synthesis block:** set `s = 0` at `t_b ∈ {0, 0.5, 1, 2, 4, 6, 8}` h after the strong (S) induction, plus a no-block control; read `w_cap` of T at 10 h and 24 h. Pass: retained `w_cap` is non-decreasing in `t_b`; the half-retention time `t_50` is reported with its CI (fit of a sigmoid in `t_b`; ≥ 5 seeds if release is stochastic), as a sweep over `k_cap` and `n`; the instantaneous-capture limit gives a step at the PRP-crossing time. `t_50` is **compared with**, not fitted to, the ~6 h **behavioural** window of cellular consolidation (`params.SLOW_TIMESCALES["cellular_consolidation_window"]`, unverified; decided 2026-10-22, `docs/handoff.md` decision 9). The report gives `t_50 − 6 h` with its CI and states that the target is a behavioural (whole-animal, protein-synthesis inhibitor) window, not a slice late-LTP window, so agreement is consistency with the hypothesis that tag/capture underlies cellular consolidation, not a test of the single-synapse mechanism |
-| **S5** | **Graded `V_seg`**: scale NMDAR conductance 0–100%; optionally enable dendritic Na to test the `thr` dendritic spike | Captured-weight step shrinks continuously with NMDAR dose (model §3.4 prediction), not all-or-nothing. Dose–response with CI over seeds |
+| **S5** | **Graded `V_seg`**: scale NMDAR conductance 0–100%; optionally enable dendritic Na to test the `thr` dendritic spike | Captured-weight step shrinks continuously with NMDAR dose (model §2.1 prediction), not all-or-nothing. Dose–response with CI over seeds |
 | **S6** | **Forward vs reverse order.** Three SC afferent groups A, B, C onto the PYR; fire A→B→C and C→B→A with 3–5 ms spacing (ripple-compressed) | Reports the tag-amplitude pattern per group under STDP + STP for each order. Pilot only: with one PYR this tests synapse-level order sensitivity, not replay |
 | **S7** | **Parameter summary.** Table of fitted `U, τ_rec, τ_fac` per pathway, τ_tag, A±, PRP kinetics (`τ_P`, `θ_PRP`, `k_cap`, `n`), with source, conditions and confidence intervals | Table in RESULTS.md; every value traceable to a run or a cited source |
 

@@ -17,8 +17,9 @@ spike generators. Tier B = Tier A plus PV basket, bistratified and O-LM cells.*
 
 - [docs/handoff.md](docs/handoff.md): decisions, status, blockers and next steps (read first).
 - [docs/plan.md](docs/plan.md): the plan, stages S0–S7 and acceptance criteria.
-- [hippocampal_plasticity_model.md](hippocampal_plasticity_model.md): the main approach file, high-level model (timescales, cellular vs. system consolidation, tag/capture, `V_seg`).
-- [hippocampal_memristive_implementation.md](hippocampal_memristive_implementation.md): memristive and digital hardware implementation of the model.
+- [hippocampal_plasticity_model.md](hippocampal_plasticity_model.md): the main approach file, the plasticity model (timescales, cellular vs. system consolidation, tag/capture, graded tag amplitude `V_seg`).
+- [hippocampal_memristive_implementation.md](hippocampal_memristive_implementation.md): neuron architecture (dendritic-convolution pipeline) and its memristive and digital hardware implementation.
+- [hippocampal_downscaling_mechanisms.md](hippocampal_downscaling_mechanisms.md): mechanisms that weaken synapses or bound their total, with timescales and model hooks.
 - [docs/neuron_model_optimization.md](docs/neuron_model_optimization.md): hardware-feasibility companion to the memristive implementation.
 - `mod/`, `tests/`: NMODL mechanisms and tests (empty until S0–S1).
 - [RESULTS.md](RESULTS.md): numbered experiment log.

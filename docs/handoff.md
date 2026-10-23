@@ -68,7 +68,7 @@ Applied 2026-10-22: the memristive document uses the same terminology; system co
 "recall no longer depends on the organic tier" (the organic state afterwards is a free parameter;
 standard, multiple-trace and trace-transformation accounts named); the cortical tier has its own
 cellular-consolidation (volatile-until-latched) step, an open device requirement. Fig. 1 regenerated
-(`figures/src/make_timescale_axis.py`); Fig. 3B relabelled "cellular consolidation" (raster patch, no
+(`figures/src/make_timescale_axis.py`); Fig. 3B (now implementation Fig. I1, panel B) relabelled "cellular consolidation" (raster patch, no
 source file). 2026-10-22: the tier-map SVG was removed as a duplicate of Fig. 1; the memristive document
 uses Fig. 1 plus its tier table. Fig. 1 now shades the ~6 h protein-synthesis-sensitive window.
 8. 2026-10-22: capture in `SegTag` is **gradual** (rate ∝ h(P)·T, soft PRP threshold), not instantaneous;
@@ -78,6 +78,10 @@ uses Fig. 1 plus its tier table. Fig. 1 now shades the ~6 h protein-synthesis-se
    protein-synthesis-sensitive window (not a slice late-LTP window). It is compared, not fitted: the
    capture parameters are swept, not tuned to give 6 h. Caveat: the target is a whole-animal behavioural
    measure and the model is one CA1 synapse, so agreement supports consistency, not mechanism.
+10. 2026-10-23: the model document is the plasticity model only (terminology, timescales, tag/capture,
+    graded tag amplitude `V_seg` as model §2.1, system consolidation as model §3). The dendritic-
+    convolution architecture (old model §3) moved to implementation §7. The old spec file is a contents
+    page listing the model, implementation and downscaling documents.
 Not yet applied (need a decision by the project owner):
 - (resolved 2026-10-22, decisions 8 and 9) gradual capture and S4(d) are in `docs/plan.md`; S4(d) is
   compared with the behavioural ~6 h window. Still open: sources for k_cap, n, τ_P, and a primary source

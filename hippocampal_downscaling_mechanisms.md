@@ -5,8 +5,8 @@ sections in [`hippocampal_memristive_implementation.md`](hippocampal_memristive_
 "implementation §n"). The model document lays out the *upscaling* path: STP → Ca²⁺/kinase → E-LTP →
 tag & capture → L-LTP (the synaptic correlate of cellular consolidation) → SWR replay → system
 consolidation. This one lists the mechanisms that *weaken* synapses or keep their total bounded. Each
-entry gives its timescale, its hook in the circuit model (model §2 tag/capture, model §3.2
-synaptic-area "activity-dependent weight decay", model §3.4 `V_seg`, model §4 replay), and its primary
+entry gives its timescale, its hook in the circuit model (model §2 tag/capture, implementation §7.2
+synaptic-area "activity-dependent weight decay", model §2.1 `V_seg`, model §3 replay), and its primary
 literature.
 
 ![Thirteen synaptic downscaling mechanisms on the same logarithmic time axis as Fig. 1 of the model document, from 1 ms to 10 years, ordered by onset so the bars form a descending staircase. Short-term depression, presynaptic inhibition and SWR-associated depression start in the millisecond range; Hebbian, heterosynaptic and tag-related depression start at seconds to minutes; BCM metaplasticity, sleep renormalization and synaptic scaling start at tens of minutes to hours; pruning and active forgetting start at days and extend to a year.](figures/downscaling_timescale_axis.png)
@@ -32,9 +32,9 @@ conditions before use.
 | # | Mechanism | Timescale | Spec hook | Class |
 |---|---|---|---|---|
 | 1 | Short-term depression | 10 ms–10 s | STP (S0–S3) | transient, presynaptic |
-| 2 | Presynaptic inhibition (adenosine A1, GABA_B, mGluR) | 50 ms–min (tonic: hours) | neuromodulatory input, model §3.2 | transient, presynaptic |
-| 3 | SWR-associated depression | ripple 100 ms, effect hours, recurs over days | model §4 replay | sleep / replay |
-| 4 | NMDAR-dependent LTD / STDP depression | induction s–min, expression hours | `g_Ca(V_seg)` low-Ca branch, model §3.4 | Hebbian |
+| 2 | Presynaptic inhibition (adenosine A1, GABA_B, mGluR) | 50 ms–min (tonic: hours) | neuromodulatory input, implementation §7.2 | transient, presynaptic |
+| 3 | SWR-associated depression | ripple 100 ms, effect hours, recurs over days | model §3 replay | sleep / replay |
+| 4 | NMDAR-dependent LTD / STDP depression | induction s–min, expression hours | `g_Ca(V_seg)` low-Ca branch, model §2.1 | Hebbian |
 | 5 | Depotentiation / tag reset | window 1 min–1 hr | active reset of the model §2 tag | Hebbian, reversal |
 | 6 | Heterosynaptic depression | min–hours | per-segment conservation (`V_seg` unit) | competitive |
 | 7 | mGluR-LTD | min–1 day | PRP pool, model §2 | Hebbian, protein-synthesis dependent |
@@ -42,7 +42,7 @@ conditions before use.
 | 9 | PRP competition | 30 min–8 hr | capture threshold, model §2 | competitive |
 | 10 | BCM sliding threshold / metaplasticity | 30 min–days | LTD/LTP crossover of `g_Ca` | homeostatic |
 | 11 | Sleep renormalization (SHY) | hours, each sleep cycle | global downscaling between replay epochs | sleep / homeostatic |
-| 12 | Synaptic scaling | 12 hr–days | model §3.2 weight decay | homeostatic |
+| 12 | Synaptic scaling | 12 hr–days | implementation §7.2 weight decay | homeostatic |
 | 13 | Pruning and active forgetting | days–months | removal of uncaptured traces | structural |
 
 ---
@@ -55,7 +55,7 @@ refractoriness and receptor desensitization add to the effect. The stored weight
 does not change, only the efficacy read out from it. This is the TM-model
 depression term already used in S0–S3.
 
-**Spec hook.** STP in model §1 and model §3.4. It downscales transmission during high-rate
+**Spec hook.** STP in model §1 and model §2.1. It downscales transmission during high-rate
 bursts, including the compressed sequences of SWR replay.
 
 **References.**
@@ -70,7 +70,7 @@ Extracellular adenosine builds up with prolonged wake and metabolic load, which
 ties this mechanism to sleep pressure. That makes it a tonic, hours-scale
 downscaling of Schaffer-collateral release.
 
-**Spec hook.** The separate neuromodulatory input to the synaptic area (model §3.2).
+**Spec hook.** The separate neuromodulatory input to the synaptic area (implementation §7.2).
 Expressed as a scaling of the TM parameter U.
 
 **References.**
@@ -88,7 +88,7 @@ and the size of that drop is predicted by NREM spindle/SWR incidence followed by
 REM. In cortex, Up states bias plasticity toward depression of inputs that do not
 drive the postsynaptic cell, while inputs that do drive it are spared.
 
-**Spec hook.** Model §4. The same SWR event that replays and captures the stored
+**Spec hook.** Model §3. The same SWR event that replays and captures the stored
 sequence also depresses the rest of the synapses. Replay therefore acts as
 selection (capture what is replayed, depress what is not), not only as
 potentiation.
@@ -107,9 +107,9 @@ example 1 Hz for 15 min) preferentially activates phosphatases (calcineurin, PP1
 over CaMKII. AMPARs are then dephosphorylated and endocytosed. Under STDP, the same
 low-Ca regime is reached when the postsynaptic spike precedes the presynaptic one.
 
-**Spec hook.** model §3.4 `g_Ca(V_seg)`. Read with the calcium-control hypothesis, a single
+**Spec hook.** model §2.1 `g_Ca(V_seg)`. Read with the calcium-control hypothesis, a single
 sigmoid becomes two thresholds: θ_d < Ca < θ_p gives depression and Ca > θ_p gives
-a tag. The ±20 ms STDP window in model §3.5 gains a negative lobe.
+a tag. The ±20 ms STDP window in implementation §7.5 gains a negative lobe.
 
 **References.**
 - Dudek SM, Bear MF (1992). Homosynaptic long-term depression in area CA1 of hippocampus and effects of NMDA receptor blockade. *PNAS* 89:4363–4367.
@@ -150,7 +150,7 @@ are potentiated. In amygdala intercalated cells, opposite-signed heterosynaptic
 changes conserve the total synaptic weight.
 
 **Spec hook.** Per-segment weight conservation at the same granularity as `V_seg`
-(one state per `thr` unit). It gives the cluster topology of model §3.3 a
+(one state per `thr` unit). It gives the cluster topology of implementation §7.3 a
 normalization rule.
 
 **References.**
@@ -214,7 +214,7 @@ postsynaptic activity. High prior activity raises the threshold, which favours
 depression. Low prior activity lowers it. NMDAR subunit composition (GluN2A/2B)
 is one substrate of the shift.
 
-**Spec hook.** A slow variable that moves θ_p of `g_Ca` in model §3.4. It costs one extra
+**Spec hook.** A slow variable that moves θ_p of `g_Ca` in model §2.1. It costs one extra
 state per neuron or segment.
 
 **References.**
@@ -253,7 +253,7 @@ hippocampus is synapse-type specific: silencing strengthens the throughput
 DG→CA3 and CA3→CA1 synapses but weakens recurrent CA3→CA3 synapses. Release
 probability is also regulated homeostatically by local dendritic activity.
 
-**Spec hook.** The "activity-dependent weight decay" of the synaptic area (model §3.2).
+**Spec hook.** The "activity-dependent weight decay" of the synaptic area (implementation §7.2).
 Presynaptically, it acts as a branch-level scaling of U. This mechanism is slow,
 so short runs must either state a compression factor or leave it out (see
 `CLAUDE.md`).
@@ -283,7 +283,7 @@ memory. Rac1/cofilin signalling drives active forgetting (first shown in
 hippocampus-dependent memories.
 
 **Spec hook.** The fate of an uncaptured or unreplayed trace on the slow side of
-model §4. Neurogenesis acts in DG, outside the minimal CA1 circuit.
+model §3. Neurogenesis acts in DG, outside the minimal CA1 circuit.
 
 **References.**
 - Wang C, Yue H, Hu Z, et al. (2020). Microglia mediate forgetting via complement-dependent synaptic elimination. *Science* 367:688–694. doi:10.1126/science.aaz2288
