@@ -9,10 +9,10 @@ entry gives its timescale, its hook in the circuit model (model §2 tag/capture,
 synaptic-area "activity-dependent weight decay", model §2.1 `V_seg`, model §3 replay), and its primary
 literature.
 
-![Thirteen synaptic downscaling mechanisms on the same logarithmic time axis as Fig. 1 of the model document, from 1 ms to 10 years, ordered by onset so the bars form a descending staircase. A grey reference row 0, neurotransmission at 0.4–6 ms, sits above them. Short-term depression, presynaptic inhibition and SWR-associated depression start in the millisecond range; Hebbian, heterosynaptic and tag-related depression start at seconds to minutes; BCM metaplasticity, sleep renormalization and synaptic scaling start at tens of minutes to hours; pruning and active forgetting start at days and extend to a year.](figures/downscaling_timescale_axis.png)
+![Thirteen synaptic downscaling mechanisms on the same logarithmic time axis as Fig. 1 of the model document, from 1 ms to 10 years, ordered by onset so the bars form a descending staircase. A reference row 0, neurotransmission at 0.4–6 ms, sits above them. Short-term depression, presynaptic inhibition and SWR-associated depression start in the millisecond range; Hebbian, heterosynaptic and tag-related depression start at seconds to minutes; BCM metaplasticity, sleep renormalization and synaptic scaling start at tens of minutes to hours; pruning and active forgetting start at days and extend to a year.](figures/downscaling_timescale_axis.png)
 
 *Fig. D1. Downscaling mechanisms on the log time axis of model Fig. 1, ordered
-by onset (ties broken by end), as in Fig. 1. Row 0 (grey) is neurotransmission,
+by onset (ties broken by end), as in Fig. 1. Row 0 is neurotransmission,
 drawn with the span of model Fig. 1 row 1 (~0.4–6 ms) as the common fastest
 reference. It is not a downscaling mechanism. A bar's position marks onset and its
 length marks characteristic duration. Dotted tails
@@ -505,5 +505,3 @@ Plausibility grades from the section above are given in brackets.
    and any timescale compression factor must be stated.
 5. **#12** [Conditional]. Multiplicative scaling, only with a stated compression factor,
    and as an on/off hypothesis.
-
-<!-- test text: push check -->

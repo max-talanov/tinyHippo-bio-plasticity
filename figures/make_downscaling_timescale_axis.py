@@ -19,7 +19,7 @@ MS, S, MIN, HR, DAY, WK, YR = 1e-3, 1.0, 60.0, 3600.0, 86400.0, 604800.0, 3.156e
 # Rows are drawn in order of onset (start_s), ties broken by end_s, so the
 # bars form a staircase like figures/timescale_axis.png.
 MECHANISMS = sorted([
-    ("Short-term depression",          10 * MS, 10 * S,  None,     "#2e6fa7"),
+    ("Short-term depression",          10 * MS, 10 * S,  None,     "#4a62b0"),
     ("Presynaptic inhibition (A1/GABA_B)", 50 * MS, 10 * MIN, 12 * HR, "#1f8fa0"),
     ("SWR-associated depression",      100 * MS, 8 * HR, 3 * DAY,  "#3f8f6a"),
     ("NMDAR-LTD / STDP depression",    10 * S,  3 * HR,  None,     "#4a8c3a"),
@@ -34,9 +34,8 @@ MECHANISMS = sorted([
     ("Pruning / active forgetting",    1 * DAY, 5 * WK,  1 * YR,   "#5a4f86"),
 ], key=lambda m: (m[1], m[2]))
 
-# Reference row: same span as row 1 of figures/src/make_timescale_axis.py, drawn in grey
-# because row 1 here (short-term depression) already uses that figure's blue.
-REFERENCE = ("Neurotransmission", 4e-4, 6 * MS, None, "#6b6f7a")
+# Reference row: same span and colour as row 1 of figures/src/make_timescale_axis.py.
+REFERENCE = ("Neurotransmission", 4e-4, 6 * MS, None, "#2e6fa7")
 
 TICKS = [(1 * MS, "1 ms"), (100 * MS, "100 ms"), (1 * S, "1 s"), (1 * MIN, "1 min"),
          (1 * HR, "1 hr"), (1 * DAY, "1 day"), (1 * WK, "1 week"),
