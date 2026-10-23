@@ -4,6 +4,9 @@ Companion to figures/timescale_axis.png (potentiation/consolidation stages):
 the same log time axis (1 ms - 10 yr), showing synaptic downscaling mechanisms.
 Bar spans are characteristic ranges from the references in
 hippocampal_downscaling_mechanisms.md, rounded to the order of magnitude.
+Row 0 (neurotransmission, 0.4-6 ms) is a reference row with the span of row 1 of
+figures/src/make_timescale_axis.py so both figures share a fastest timescale;
+it is not a downscaling mechanism and is labelled 0 so that mechanisms keep numbers 1-13.
 """
 from pathlib import Path
 
@@ -31,6 +34,10 @@ MECHANISMS = sorted([
     ("Pruning / active forgetting",    1 * DAY, 5 * WK,  1 * YR,   "#5a4f86"),
 ], key=lambda m: (m[1], m[2]))
 
+# Reference row: same span as row 1 of figures/src/make_timescale_axis.py, drawn in grey
+# because row 1 here (short-term depression) already uses that figure's blue.
+REFERENCE = ("Neurotransmission", 4e-4, 6 * MS, None, "#6b6f7a")
+
 TICKS = [(1 * MS, "1 ms"), (100 * MS, "100 ms"), (1 * S, "1 s"), (1 * MIN, "1 min"),
          (1 * HR, "1 hr"), (1 * DAY, "1 day"), (1 * WK, "1 week"),
          (1 * YR, "1 year"), (10 * YR, "10 yr")]
@@ -43,7 +50,8 @@ def lighten(hex_colour, amount=0.45):
 
 def main(out=Path(__file__).with_name("downscaling_timescale_axis.png")):
     plt.rcParams["font.family"] = "monospace"
-    n = len(MECHANISMS)
+    rows = [REFERENCE] + MECHANISMS
+    n = len(rows)
     fig, ax = plt.subplots(figsize=(18, 0.68 * n + 1.6), dpi=100)
     x0, x1 = np.log10(0.6 * MS), np.log10(14 * YR)
     label_x = x0 - 3.6
@@ -51,14 +59,14 @@ def main(out=Path(__file__).with_name("downscaling_timescale_axis.png")):
     grid = np.arange(-3, np.log10(10 * YR) + 0.01, 0.5)
     ax.vlines(grid, 0.15, n + 0.7, color="#dddddd", lw=1.2, zorder=0)
 
-    for i, (label, a, b, tail, colour) in enumerate(MECHANISMS):
+    for i, (label, a, b, tail, colour) in enumerate(rows):
         y = n - i
         ax.plot([np.log10(a), np.log10(b)], [y, y], color=colour, lw=19,
                 solid_capstyle="round", zorder=3)
         if tail:
             xs = np.arange(np.log10(b) + 0.09, np.log10(tail), 0.09)
             ax.scatter(xs, np.full_like(xs, y), s=70, color=lighten(colour), zorder=2)
-        ax.text(label_x, y, f"{i + 1:>2} · {label}", color=colour, fontsize=15,
+        ax.text(label_x, y, f"{i:>2} · {label}", color=colour, fontsize=15,
                 va="center", ha="left")
 
     ax.axhline(0.15, xmin=0.0, color="#555a66", lw=2)

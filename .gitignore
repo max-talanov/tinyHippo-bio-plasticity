@@ -228,3 +228,6 @@ aarch64/
 *.mod.o
 # local simulation output
 out/
+
+# macOS Finder metadata
+.DS_Store
