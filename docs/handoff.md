@@ -39,7 +39,7 @@ visible from the code. Update it whenever a decision or the status changes.
 | S0 environment (NEURON 9.0.2, nrnivmodl) | passes | `tests/test_s0_environment.py` |
 | S1 `TMSyn` vs closed-form Tsodyks–Markram | passes (amp error 8e-14, trace 2e-6 of peak) | `RESULTS.md` §1 |
 | S2 STP signatures per pathway | **sign test passes** on secondary-source literature parameters (9 pathways); fit only round-tripped, no real recordings; **open until the primary papers are read** | `RESULTS.md` §2, §3 |
-| S3 (replanned 2026-10-23 as S3a–S3e) | **pilot only**: the circuit builds and runs with placeholder biophysics (`RESULTS.md` §4). S3a (balance map), S3b (cell calibration), S3c (circuit E/I balance), S3d (gain knobs), S3e (interface to S4) not started | `docs/plan.md` §3, `docs/replan_stp_balance.md`, `cells.py`, `circuit.py`, `run_s3_pilot.py` |
+| S3 (replanned 2026-10-23 as S3a–S3e) | **pilot only**: the circuit builds and runs with placeholder biophysics (`RESULTS.md` §4). **S3a done** (`RESULTS.md` §5, `run_s3a.py`; H1, H2, H4 hold on secondary-source parameters). S3b (cell calibration), S3c (circuit E/I balance), S3d (gain knobs), S3e (interface to S4) not started | `docs/plan.md` §3, `docs/replan_stp_balance.md`, `cells.py`, `circuit.py`, `run_s3_pilot.py` |
 | S4–S7 | not started | |
 
 ## Sources (state on 2026-10-23)
@@ -90,8 +90,7 @@ Not yet applied (need a decision by the project owner):
 
 ## Next steps
 
-1. **S3a** (needs no new sources): balance index `B(f)`, `f*` and `U`-gain dependence per pathway from the NEURON clamp
-   against the closed form (`docs/plan.md` §3). Closed-form expectation: SC→PYR `f*` ≈ 27.5 Hz; inhibitory pathways `B < 1`.
+1. S3a is done (`RESULTS.md` §5). Re-run `run_s3a.py` when `params.py` values change from secondary to primary sources.
 2. Project owner downloads the papers of `docs/sources_to_download.md` (priority A1, A2, B1, B2, C1, C2); read them, enter values
    in `params.py` with conditions, finish S2.
 3. **S3b** cell calibration from the CA1 model papers, then **S3c** circuit E/I balance (≥ 5 seeds, E-STP × I-STP on/off, ablations).

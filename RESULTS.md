@@ -184,3 +184,42 @@ the volley proceeds. The release fraction in NEURON (`TMSyn.amp`) equals the clo
 values of one pool, not an average over contacts. The PV firing after the volley (550–880 ms) is Poisson-driven
 background with strong placeholder conductances (3 nS × 40 synapses); it was not examined further. PYR dendrites have no
 voltage-gated channels, so their "spikes" are the passive spread of the somatic action potential.
+
+## §5. S3a: single-synapse balance map (up- vs downscaling inside STP)
+
+`python run_s3a.py` (NEURON 9.0.2 `TMSyn`, CVODE, release read from `TMSyn.amp`; deterministic, no seeds).
+Data: `results/s3a_balance.csv` (693 trains); figure: `docs/figures/s3a_balance_map.png`.
+Parameters: the 9 pathways of `params.py`, all **secondary-source** values (§3); so every number below is provisional.
+No time compression. Protocol: periodic trains at 25 rates from 1 to 300 Hz (13 rates for the other `U` gains), spike
+times snapped to the 0.025 ms grid, length 8 × max(τ_rec, τ_fac) + 20 pulses so that the steady state is reached.
+Balance index `B(f) = R_ss(f)/U`, with `R_ss` the release fraction of the last pulse; `B > 1` net upscaling, `B < 1` net
+downscaling; `f*` where `B` crosses 1 downwards (log-linear interpolation).
+
+**Check against the reference.** NEURON vs the closed form on the identical spike times: max relative difference 3.0e-11
+over all 693 trains (criterion < 1e-2). Voltage-clamp EPSC amplitude (peak minus pre-pulse current) vs
+`w · 70 mV · release` at 5 and 20 Hz, all 9 pathways: max deviation 1.3e-4. Above ~20 Hz the EPSCs overlap, so release is read
+from the mechanism, not from the clamp current.
+
+| Pathway | B at 1 / 5 / 20 / 80 / 200 / 300 Hz | max B (at) | f* (Hz) | Class |
+|---|---|---|---|---|
+| SC → PYR | 1.00 / 1.13 / 1.11 / 0.49 / 0.20 / 0.13 | 1.25 (10.8 Hz) | 27.5 | up, then down |
+| SC → interneuron (pooled; PV and BiS) | 1.00 / 1.26 / 1.02 / 0.39 / 0.16 / 0.10 | 1.34 (8.5 Hz) | 22.6 | up, then down |
+| PYR → PV, BiS | 0.98 / 0.72 / 0.34 / 0.13 / 0.06 / 0.03 | 0.98 (1 Hz) | none | down only |
+| PYR → O-LM | 1.26 / 2.90 / 2.63 / 1.04 / 0.42 / 0.27 | 3.32 (10.8 Hz) | 75.7 | up, then down |
+| PV → PYR | 0.92 / 0.58 / 0.23 / 0.08 / 0.03 / 0.02 | 0.92 (1 Hz) | none | down only |
+| BiS → PYR | 0.92 / 0.59 / 0.24 / 0.09 / 0.04 / 0.02 | 0.92 (1 Hz) | none | down only |
+| O-LM → PYR | 0.80 / 0.35 / 0.11 / 0.04 / 0.01 / 0.01 | 0.80 (1 Hz) | none | down only |
+
+`f*` from the NEURON points agrees with the dense closed-form `f*` (27.5, 22.6, 75.4 Hz). The hypotheses of
+`docs/replan_stp_balance.md` §5 that this stage tests:
+- **H1 confirmed** (for these parameters): SC → PYR is net upscaling at about 3–27 Hz and net downscaling above `f* = 27.5 Hz`.
+- **H2 confirmed**: PYR → PV/BiS and all interneuron → PYR pathways have `B < 1` at every rate (even at 1 Hz for those with τ_rec ≥ 410 ms).
+- **H4 confirmed at the single-synapse level**: a `U` gain (0.5–1.5) moves `f*` for SC → PYR from 66 to 14 Hz, and at 5–20 Hz
+  it changes the absolute release (`R_ss(5 Hz)` 0.079–0.219), but at 80 Hz `R_ss` varies only 0.066–0.070 and at 200 Hz it is
+  0.028 for every gain: ripple-rate release is set by τ_rec, not `U`. A presynaptic-inhibition or [Ca²⁺]ₒ change would therefore
+  act on transmission at theta and gamma rates and almost not at ripple rates. (The `R_ss(5/20 Hz)` columns for gains ≠ 1 are
+  taken at the nearest of 13 grid rates, not exactly at 5 and 20 Hz.)
+
+**Not shown.** This is the per-synapse steady state of a deterministic release model; stochastic release, a mixed rate
+history and the circuit (rates set by the cells, E/I balance) are S3c. The sign and size of every `B(f)` depend on the
+secondary-source parameters; the main uncertainty is the pooled SC → interneuron fit and the cortical O-LM values.
