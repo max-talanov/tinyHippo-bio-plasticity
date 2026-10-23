@@ -121,4 +121,4 @@ depression), #12 (scaling, only with a stated compression factor).
    the minutes-scale presynaptic inhibition time course be modelled as dynamic states?
 2. Replace S3 by S3a–S3e, and apply the §6 edits to `docs/plan.md`?
 3. Sources: the PDFs of Wierenga & Wadman 2003 and Losonczy 2002, and any reference for the A1 / GABA_B effect on `U`
-   at SC→CA1 (Dunwiddie & Masino 2001 and Davies 1991 are cited in the downscaling document, not read).
+   at SC→CA1. The candidates are listed in [sources_to_download.md](sources_to_download.md).
