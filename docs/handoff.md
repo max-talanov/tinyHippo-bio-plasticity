@@ -53,7 +53,14 @@ Wierenga & Wadman 2003. So `params.py` has U, D, F for 9 pathways, all `secondar
 `docs/ca1_architecture_literature.md` §2–§3).
 **Papers to download, with priority and why: `docs/sources_to_download.md`.** Needed for S2 (Wierenga & Wadman 2003,
 Sun et al. 2005, Losonczy 2002, Ecker 2020 published version, Éltes 2017, Kohus 2016), S3d (Dürst 2022, Caruana & Dudek 2020)
-and S3b (Migliore 2018, Bezaire 2016). Citations in the plan still from memory: Cutsuridis 2010, Clopath 2008, Barrett 2009.
+and S3b (Migliore 2018, Bezaire 2016: **both PDFs read 2026-10-23**, see below). Read 2026-10-23 for S3b: Bezaire 2016 gives the experimental targets now in `params.CELL_TARGETS` (rheobase, input
+resistance, membrane tau of PYR, PV basket, bistratified, O-LM; mouse, Soltesz lab; T and [Ca²⁺]ₒ not read) and has **no
+short-term plasticity** (it names STP as future work), so it is no STP source. Migliore 2018 gives the channel set (Na, KDR,
+KA, KM, KD, CaN, CaL, CaT, Ih, KCa, Cagk), recording conditions (rat, sharp electrode 34–36 °C, 2.5 mM Ca²⁺; some
+Wistar P14–23 whole-cell at 34 °C) but its feature tables S1–S5 (and the mapping of morphologies to e-types) are in the
+supplement, not in the PDF; models are on ModelDB 244688. The placeholder cells' DC rheobase (PYR 28, PV 16, BiS 23,
+O-LM 28 pA) is about 7–20× below the experimental PYR/PV/BiS values (182, 307, 333 pA).
+Citations in the plan still from memory: Cutsuridis 2010, Clopath 2008, Barrett 2009.
 
 ## Open items from Edu's consolidation comment (2026-10-22)
 

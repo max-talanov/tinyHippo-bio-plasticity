@@ -103,3 +103,30 @@ SLOW_TIMESCALES = {
         source="spec table (hippocampal_plasticity_model.md §1), no primary source cited",
         conditions="not stated", status="unverified"),
 }
+
+
+@dataclass(frozen=True)
+class CellTarget:
+    """Intrinsic properties of one cell class, read from a source (mean, SD where given)."""
+    name: str
+    n: int
+    r_in_mohm: tuple          # (mean, sd)
+    tau_m_ms: tuple
+    rheobase_pa: tuple
+    source: str
+    conditions: str
+    status: str = "secondary"
+
+
+# Bezaire et al. 2016 eLife 5:e18566, Appendix 1, table 1 ("Intrinsic electrophysiological properties of experimental
+# cells"), read from the PDF 2026-10-23. These are the data the CA1 model of that paper was fitted to (Soltesz lab
+# whole-cell recordings, mouse; raw files on OSF). Temperature and [Ca2+]o are NOT stated in the text read: unverified.
+# The model values of that paper (Table 3: rheobase Pyr 250, PV+B 300, Bis 350, O-LM 50 pA) are model outputs, not data.
+_BEZAIRE_COND = "mouse, whole-cell current clamp (Soltesz lab, unpublished or Lee et al. 2014); T and [Ca2+]o not read"
+_BEZAIRE = "Bezaire et al. 2016 eLife 5:e18566, Appendix 1 table 1"
+CELL_TARGETS = {
+    "PYR": CellTarget("PYR", 17, (139.5, 38.8), (21.5, 8.6), (182.4, 55.7), _BEZAIRE, _BEZAIRE_COND),
+    "PV": CellTarget("PV basket", 7, (65.2, 16.2), (13.3, 5.4), (307.1, 109.7), _BEZAIRE, _BEZAIRE_COND),
+    "BiS": CellTarget("Bistratified", 3, (109.1, 30.5), (12.2, 0.6), (333.3, 57.7), _BEZAIRE, _BEZAIRE_COND),
+    "OLM": CellTarget("O-LM", 3, (592.3, 97.0), (41.4, 11.7), (20.0, 0.0), _BEZAIRE, _BEZAIRE_COND),
+}
