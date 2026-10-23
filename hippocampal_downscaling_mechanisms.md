@@ -317,3 +317,5 @@ Hebbian growth. Fast candidates are #3, #6 and #10.
 4. **#3.** SWR-gated depression of non-replayed synapses. Needs ripple-epoch input,
    and any timescale compression factor must be stated.
 5. **#12.** Multiplicative scaling, only with a stated compression factor.
+
+<!-- test text: push check -->
