@@ -116,6 +116,7 @@ class CellTarget:
     source: str
     conditions: str
     status: str = "secondary"
+    rmp_mv: tuple = None      # (mean, sd) resting potential, mV (negative)
 
 
 # Bezaire et al. 2016 eLife 5:e18566, Appendix 1, table 1 ("Intrinsic electrophysiological properties of experimental
@@ -125,8 +126,8 @@ class CellTarget:
 _BEZAIRE_COND = "mouse, whole-cell current clamp (Soltesz lab, unpublished or Lee et al. 2014); T and [Ca2+]o not read"
 _BEZAIRE = "Bezaire et al. 2016 eLife 5:e18566, Appendix 1 table 1"
 CELL_TARGETS = {
-    "PYR": CellTarget("PYR", 17, (139.5, 38.8), (21.5, 8.6), (182.4, 55.7), _BEZAIRE, _BEZAIRE_COND),
-    "PV": CellTarget("PV basket", 7, (65.2, 16.2), (13.3, 5.4), (307.1, 109.7), _BEZAIRE, _BEZAIRE_COND),
-    "BiS": CellTarget("Bistratified", 3, (109.1, 30.5), (12.2, 0.6), (333.3, 57.7), _BEZAIRE, _BEZAIRE_COND),
-    "OLM": CellTarget("O-LM", 3, (592.3, 97.0), (41.4, 11.7), (20.0, 0.0), _BEZAIRE, _BEZAIRE_COND),
+    "PYR": CellTarget("PYR", 17, (139.5, 38.8), (21.5, 8.6), (182.4, 55.7), _BEZAIRE, _BEZAIRE_COND, rmp_mv=(-70.7, 1.2)),
+    "PV": CellTarget("PV basket", 7, (65.2, 16.2), (13.3, 5.4), (307.1, 109.7), _BEZAIRE, _BEZAIRE_COND, rmp_mv=(-61.4, 2.0)),
+    "BiS": CellTarget("Bistratified", 3, (109.1, 30.5), (12.2, 0.6), (333.3, 57.7), _BEZAIRE, _BEZAIRE_COND, rmp_mv=(-63.6, 4.7)),
+    "OLM": CellTarget("O-LM", 3, (592.3, 97.0), (41.4, 11.7), (20.0, 0.0), _BEZAIRE, _BEZAIRE_COND, rmp_mv=(-64.8, 1.3)),
 }

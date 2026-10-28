@@ -145,7 +145,8 @@ Figures: `docs/figures/s3_pilot_activity.png`, `docs/figures/s3_pilot_weights.pn
 interneurons that differ only in size), the SC and T conductances (0.6 nS = the PC→PC value, no CA1 SC source), SC→interneuron
 conductances (taken from PC→interneuron), contact counts, NetCon delay (1 ms), AMPA-only, and the GABA_A kinetics
 (0.5/8 ms). STP (U, D, F) and the PC↔interneuron peak conductances come from `params.py` / Ecker 2019 (secondary sources).
-DC rheobase (500 ms, bisection): PV 16 pA, bistratified 23 pA, O-LM 28 pA, PYR 28 pA.
+DC rheobase (500 ms, bisection): PV 16 pA, bistratified 23 pA, O-LM 28 pA, PYR ≈ 94 pA.
+**Correction (2026-10-28):** this section first stated PYR 28 pA. That value was measured on a soma-only cell: `cells.rheobase(build_pyr()["soma"])` kept only the soma in Python, so NEURON deleted the unreferenced dendrite sections, and the value coincided with O-LM's. The circuit runs themselves kept the dendrites (`TierB.pyr`) and are not affected. With dendrites the PYR rheobase is 92.8 pA (400 ms step, `calibrate.py`) or ≈ 94 pA (500 ms).
 
 **Protocol.** 600 SC synapses on apical prox (SR), 300 on basal (SO), 300 T synapses (SR) at 5 Hz, 40 SC synapses on each
 of PV and bistratified; every synapse has its own Tsodyks–Markram pool and an independent Poisson train: 1 Hz background,
@@ -223,3 +224,40 @@ from the mechanism, not from the clamp current.
 **Not shown.** This is the per-synapse steady state of a deterministic release model; stochastic release, a mixed rate
 history and the circuit (rates set by the cells, E/I balance) are S3c. The sign and size of every `B(f)` depend on the
 secondary-source parameters; the main uncertainty is the pooled SC → interneuron fit and the cortical O-LM values.
+
+## §6. S3b: calibration of the four cells to the Bezaire intrinsic-property targets
+
+`python run_s3b.py fit <PYR|PV|BiS|OLM>` (`calibrate.py`, `run_s3b.py`; results in `results/s3b_<cell>.json`). Targets:
+`params.CELL_TARGETS` (Bezaire et al. 2016 Appendix 1 table 1, mouse, Soltesz lab whole-cell; T and [Ca²⁺]ₒ not read;
+secondary status). Features as defined there: input resistance from a small hyperpolarising step (here −10 pA, not the
+least hyperpolarised level of a 50 pA grid), membrane τ from a single-exponential fit of the step response, rheobase =
+least depolarising current giving a spike during a 400 ms step (bisection, 1 pA tolerance; the experimental rheobase is
+quantised by a 50 pA grid), resting potential. Fixed step dt = 0.025 ms, deterministic.
+
+**Scoring** (`calibrate.residuals`): residual = ln(measured/target mean) / max(relative SD, 10%) for Rin, τ and rheobase;
+(RMP − target) / max(SD, 2 mV) for the resting potential; fixed penalty 10 if the cell does not spike up to 1 nA. A
+residual of 1 is about one experimental SD (floored at 10% of the mean, which matters for O-LM rheobase 20 ± 0 pA and
+bistratified τ 12.2 ± 0.6 ms). Least squares (`scipy.optimize.least_squares`, bounds, `diff_step` 0.05), 4 free parameters
+per interneuron (lumped soma size, leak, Na/K scale, hh leak reversal) and 6 for the PYR (dendritic leak, dendritic
+diameter scale, soma Na/K scale, soma leak, dendritic and soma leak reversals); two starts for interneurons (the
+placeholder values, and values derived from the targets), best kept.
+
+| Cell | RMP mV (target) | Rin MΩ (target) | τ_m ms (target) | Rheobase pA (target) | residuals [Rin, τ, rheo, RMP] | sum sq |
+|---|---|---|---|---|---|---|
+| PYR | −70.7 (−70.7) | 140.6 (139.5) | 21.1 (21.5) | 183.6 (182.4) | 0.03, −0.04, 0.02, −0.01 | 0.00 |
+| Bistratified | −65.3 (−63.6) | 110.7 (109.1) | 12.2 (12.2) | 334.5 (333.3) | 0.05, −0.03, 0.02, −0.37 | 0.14 |
+| PV basket | −64.9 (−61.4) | 72.4 (65.2) | 8.2 (13.3) | 361.3 (307.1) | 0.42, −1.18, 0.46, −1.74 | 4.81 |
+| O-LM | −67.2 (−64.8) | 868 (592) | 20.8 (41.4) | 22.5 (20.0) | 2.34, −2.44, 1.16, −1.21 | 14.23 |
+
+Before: the placeholder cells had rheobase 93 / 16 / 23 / 28 pA (PYR / PV / BiS / O-LM) and τ_m 0.5–1.3 ms
+(`run_s3b.py` baseline). The PYR and bistratified cells now match all four features within 0.4 tolerance units. **PV and
+O-LM do not**: both starts converged to the same residuals, so a one-compartment `hh` cell cannot match τ_m, Rin and
+rheobase together for them (O-LM Rin 868 vs 592 MΩ and τ_m 21 vs 41 ms with rheobase 22.5 pA). For comparison, Bezaire's own
+O-LM model has Rin 344 MΩ, τ 22.4 ms and rheobase 50 pA (their Table 3), i.e. it also does not reproduce the data.
+
+**What this is not.** The fitted values are effective lumped parameters, not measured channel densities: the interneuron
+somata come out at 67–73 µm (they lump the dendrites), leak reversals at −47 to −58 mV (bistratified hits the −40 mV bound),
+PYR dendritic leak 2e-6 S/cm². Four features do not constrain the firing pattern: the f–I curve, spike shape, adaptation
+and the response to synaptic input are not checked. The mouse data are compared with parameters later used with rat
+synaptic data. The calibrated cells are **not yet used** by `circuit.py` (the S3 pilot of §4 still has the placeholder
+cells), so §4 is unchanged.

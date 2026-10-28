@@ -29,6 +29,7 @@ class PYRParams:
     gnabar: float = 0.12          # S/cm2, hh defaults
     gkbar: float = 0.036
     gl: float = 3e-4
+    el: float = -54.3             # mV, hh leak reversal (NEURON default)
     nseg: int = 5
 
 
@@ -40,6 +41,7 @@ class INParams:
     gnabar: float = 0.12
     gkbar: float = 0.036
     gl: float = 3e-4
+    el: float = -54.3             # mV, hh leak reversal (NEURON default)
 
 
 IN_KINDS = {"pv": INParams(size=15.0), "bis": INParams(size=18.0), "olm": INParams(size=20.0)}
@@ -58,7 +60,7 @@ def build_pyr(p: PYRParams = PYRParams(), name="pyr"):
     dist.connect(prox(1))
     soma.insert("hh")
     for seg in soma:
-        seg.hh.gnabar, seg.hh.gkbar, seg.hh.gl = p.gnabar, p.gkbar, p.gl
+        seg.hh.gnabar, seg.hh.gkbar, seg.hh.gl, seg.hh.el = p.gnabar, p.gkbar, p.gl, p.el
     for sec in (basal, prox, dist):
         sec.insert("pas")
         for seg in sec:
@@ -66,19 +68,22 @@ def build_pyr(p: PYRParams = PYRParams(), name="pyr"):
     return {"soma": soma, "basal": basal, "prox": prox, "dist": dist}
 
 
-def build_interneuron(kind: str):
-    p = IN_KINDS[kind]
+def build_interneuron(kind: str, p: INParams = None):
+    p = p or IN_KINDS[kind]
     soma = h.Section(name=f"{kind}_soma")
     soma.L = soma.diam = p.size
     soma.Ra, soma.cm = p.Ra, p.cm
     soma.insert("hh")
     for seg in soma:
-        seg.hh.gnabar, seg.hh.gkbar, seg.hh.gl = p.gnabar, p.gkbar, p.gl
+        seg.hh.gnabar, seg.hh.gkbar, seg.hh.gl, seg.hh.el = p.gnabar, p.gkbar, p.gl, p.el
     return {"soma": soma}
 
 
 def rheobase(sec, i_max=1.0, tol=1e-4, dur=500.0):
-    """Smallest DC current (nA, 500 ms) that evokes at least one spike, by bisection. Fixed step 0.025 ms."""
+    """Smallest DC current (nA, 500 ms) that evokes at least one spike, by bisection. Fixed step 0.025 ms.
+
+    Keep a reference to every section of the cell while measuring: `rheobase(build_pyr()["soma"])` drops the dict, NEURON
+    deletes the unreferenced dendrites and the result is a soma-only cell. `calibrate.measure` does this correctly."""
     import numpy as np
     stim = h.IClamp(sec(0.5))
     stim.delay, stim.dur = 50.0, dur

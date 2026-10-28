@@ -39,7 +39,7 @@ visible from the code. Update it whenever a decision or the status changes.
 | S0 environment (NEURON 9.0.2, nrnivmodl) | passes | `tests/test_s0_environment.py` |
 | S1 `TMSyn` vs closed-form Tsodyks–Markram | passes (amp error 8e-14, trace 2e-6 of peak) | `RESULTS.md` §1 |
 | S2 STP signatures per pathway | **sign test passes** on secondary-source literature parameters (9 pathways); fit only round-tripped, no real recordings; **open until the primary papers are read** | `RESULTS.md` §2, §3 |
-| S3 (replanned 2026-10-23 as S3a–S3e) | **pilot only**: the circuit builds and runs with placeholder biophysics (`RESULTS.md` §4). **S3a done** (`RESULTS.md` §5, `run_s3a.py`; H1, H2, H4 hold on secondary-source parameters). S3b (cell calibration), S3c (circuit E/I balance), S3d (gain knobs), S3e (interface to S4) not started | `docs/plan.md` §3, `docs/replan_stp_balance.md`, `cells.py`, `circuit.py`, `run_s3_pilot.py` |
+| S3 (replanned 2026-10-23 as S3a–S3e) | **pilot only**: the circuit builds and runs with placeholder biophysics (`RESULTS.md` §4). **S3a done** (`RESULTS.md` §5, `run_s3a.py`; H1, H2, H4 hold on secondary-source parameters). **S3b calibration run** (`RESULTS.md` §6: PYR and bistratified match 4 features, PV and O-LM do not; calibrated cells not yet in `circuit.py`), S3c (circuit E/I balance), S3d (gain knobs), S3e (interface to S4) not started | `docs/plan.md` §3, `docs/replan_stp_balance.md`, `cells.py`, `circuit.py`, `run_s3_pilot.py` |
 | S4–S7 | not started | |
 
 ## Sources (state on 2026-10-23)
@@ -58,8 +58,9 @@ resistance, membrane tau of PYR, PV basket, bistratified, O-LM; mouse, Soltesz l
 short-term plasticity** (it names STP as future work), so it is no STP source. Migliore 2018 gives the channel set (Na, KDR,
 KA, KM, KD, CaN, CaL, CaT, Ih, KCa, Cagk), recording conditions (rat, sharp electrode 34–36 °C, 2.5 mM Ca²⁺; some
 Wistar P14–23 whole-cell at 34 °C) but its feature tables S1–S5 (and the mapping of morphologies to e-types) are in the
-supplement, not in the PDF; models are on ModelDB 244688. The placeholder cells' DC rheobase (PYR 28, PV 16, BiS 23,
-O-LM 28 pA) is about 7–20× below the experimental PYR/PV/BiS values (182, 307, 333 pA).
+supplement, not in the PDF; models are on ModelDB 244688. The placeholder cells' DC rheobase (PYR 93, PV 16, BiS 23,
+O-LM 28 pA) is 2× (PYR) to 14–19× (BiS, PV) below the experimental values (182, 307, 333 pA); O-LM is in range (20 pA).
+(An earlier PYR value of 28 pA was a soma-only measurement; see `RESULTS.md` §4, correction.)
 Citations in the plan still from memory: Cutsuridis 2010, Clopath 2008, Barrett 2009.
 
 ## Open items from Edu's consolidation comment (2026-10-22)
@@ -100,7 +101,7 @@ Not yet applied (need a decision by the project owner):
 1. S3a is done (`RESULTS.md` §5). Re-run `run_s3a.py` when `params.py` values change from secondary to primary sources.
 2. Project owner downloads the papers of `docs/sources_to_download.md` (priority A1, A2, B1, B2, C1, C2); read them, enter values
    in `params.py` with conditions, finish S2.
-3. **S3b** cell calibration from the CA1 model papers, then **S3c** circuit E/I balance (≥ 5 seeds, E-STP × I-STP on/off, ablations).
+3. Finish **S3b**: decide how to handle PV and O-LM (add a dendritic compartment, or accept), check f–I curves, then put the calibrated cells into `circuit.py`. Then **S3c** circuit E/I balance (≥ 5 seeds, E-STP × I-STP on/off, ablations).
 4. S3d once a presynaptic-inhibition effect size and a CA1 [Ca²⁺]ₒ–`U` curve are read; S3e before starting S4.
 5. Fix before relying on circuit results: the pilot PYR fires fewer spikes when the SC drive is doubled (cause not examined).
 
