@@ -39,7 +39,7 @@ visible from the code. Update it whenever a decision or the status changes.
 | S0 environment (NEURON 9.0.2, nrnivmodl) | passes | `tests/test_s0_environment.py` |
 | S1 `TMSyn` vs closed-form Tsodyks–Markram | passes (amp error 8e-14, trace 2e-6 of peak) | `RESULTS.md` §1 |
 | S2 STP signatures per pathway | **sign test passes** on secondary-source literature parameters (9 pathways); fit only round-tripped, no real recordings; **open until the primary papers are read** | `RESULTS.md` §2, §3 |
-| S3 (replanned 2026-10-23 as S3a–S3e) | **pilot only**: the circuit builds and runs with placeholder biophysics (`RESULTS.md` §4). **S3a done** (`RESULTS.md` §5, `run_s3a.py`; H1, H2, H4 hold on secondary-source parameters). **S3b calibration run** (`RESULTS.md` §6: PYR and bistratified match 4 features, PV and O-LM do not; calibrated cells not yet in `circuit.py`), S3c (circuit E/I balance), S3d (gain knobs), S3e (interface to S4) not started | `docs/plan.md` §3, `docs/replan_stp_balance.md`, `cells.py`, `circuit.py`, `run_s3_pilot.py` |
+| S3 (replanned 2026-10-23 as S3a–S3e) | **pilot only**: the circuit builds and runs with placeholder biophysics (`RESULTS.md` §4). **S3a done** (`RESULTS.md` §5, `run_s3a.py`; H1, H2, H4 hold on secondary-source parameters)). **S3b calibration run** (`RESULTS.md` §6: one-compartment fit, PYR and bistratified match 4 features; §7: `hh` interneurons with the Bezaire 2016 dendritic morphology at 6.3 °C; **§8: Bezaire's own channels at 34 °C, port verified against the original templates; bistratified refit good, PV and O-LM fits trade firing for feature agreement, HCN does not fix O-LM Rin**; **§9: firing target (ISI, from Bezaire Appendix 1); circuit cells chosen (published PV, published O-LM with eh −32.9, bistratified refit: `cells.TIER_B_IN`); PYR replaced by Bezaire's `poolosyncell` at 34 °C and refit (sum sq 36 → 2.0, HCN cut to 10%)**; calibrated cells not yet in `circuit.py`), S3c (circuit E/I balance), S3d (gain knobs), S3e (interface to S4) not started | `docs/plan.md` §3, `docs/replan_stp_balance.md`, `cells.py`, `circuit.py`, `run_s3_pilot.py` |
 | S4–S7 | not started | |
 
 ## Sources (state on 2026-10-23)
@@ -101,7 +101,7 @@ Not yet applied (need a decision by the project owner):
 1. S3a is done (`RESULTS.md` §5). Re-run `run_s3a.py` when `params.py` values change from secondary to primary sources.
 2. Project owner downloads the papers of `docs/sources_to_download.md` (priority A1, A2, B1, B2, C1, C2); read them, enter values
    in `params.py` with conditions, finish S2.
-3. Finish **S3b**: decide how to handle PV and O-LM (add a dendritic compartment, or accept), check f–I curves, then put the calibrated cells into `circuit.py`. Then **S3c** circuit E/I balance (≥ 5 seeds, E-STP × I-STP on/off, ablations).
+3. Finish **S3b**. Decided 2026-10-29 (project owner: "bio-plausibility here is critical"): interneurons use the Bezaire 2016 morphology and channels at 34 °C (`cells.build_bezaire_interneuron`, verified by `tests/test_s3b_bezaire_cells.py`; `RESULTS.md` §7–§8). Decided 2026-10-29 (owner): the circuit uses the published PV, the published O-LM with eh −32.9 mV and the bistratified refit (`cells.TIER_B_IN`). Done: firing target (ISI; threshold, amplitude, AHP and sag as checks; `calibrate.firing`), and the PYR redone at 34 °C as Bezaire's `poolosyncell` (`cells.build_bezaire_pyr`, `results/s3b_PYR_bez.json`, `RESULTS.md` §9). The `hh` PYR of §6 is superseded. Open: (a) published or refit PYR; the refit fits better but cuts HCN to 10% and leak to 30%, and Ih matters for dendritic summation; (b) the step duration behind the ISI target is unknown (ISI changes up to 3× between 400 and 1000 ms); (c) spike shape is off in every cell (AHP ≈ 2×), not fitted; (d) depolarisation block at ≥ 1 nA in the PYR (template) and O-LM. Then put the cells into `circuit.py`, then **S3c** circuit E/I balance (≥ 5 seeds, E-STP × I-STP on/off, ablations).
 4. S3d once a presynaptic-inhibition effect size and a CA1 [Ca²⁺]ₒ–`U` curve are read; S3e before starting S4.
 5. Fix before relying on circuit results: the pilot PYR fires fewer spikes when the SC drive is doubled (cause not examined).
 
@@ -114,4 +114,7 @@ Not yet applied (need a decision by the project owner):
 - The three `PARAMS` fixtures in the tests are test values, not literature values.
 
 - `circuit.py` and `cells.py` are placeholders (textbook `hh`); every pre-S3b circuit result is a pilot (`RESULTS.md` §4).
+- `build_bezaire_interneuron` sets `h.celsius = 34` globally; `hh` cells built in the same process then run at 34 °C too.
+- Slow channels (O-LM HCN, tau about 2.6 s at rest) need settling before measuring: `calibrate.measure(settle_ms=20000)`.
+- In zsh, `$VAR` holding a command with spaces is not word-split; run multi-process jobs from a bash script.
 - Run NEURON from a Python 3.9-3.13 venv with `PYTHONPATH` unset: the app-bundle NEURON in `PYTHONPATH` shadows pip's and fails to load. On macOS the mechanisms build to `libnrnmech.dylib`.

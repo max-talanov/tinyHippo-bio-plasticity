@@ -117,17 +117,57 @@ class CellTarget:
     conditions: str
     status: str = "secondary"
     rmp_mv: tuple = None      # (mean, sd) resting potential, mV (negative)
+    # Firing (same table). ISI: "the average time interval between spike threshold time points for the least
+    # depolarized current injection level" at which the cell spiked regularly; threshold, spike amplitude and AHP from
+    # the first three spikes of that sweep. grid_pa: (first level, step) of the experimental current sweeps (Appendix 1
+    # table 2). Step duration not stated in the paper. Whether +- is SD is not stated.
+    isi_ms: tuple = None
+    grid_pa: tuple = None
+    threshold_mv: tuple = None
+    spike_amp_mv: tuple = None
+    ahp_mv: tuple = None
+    sag_mv: tuple = None
 
 
 # Bezaire et al. 2016 eLife 5:e18566, Appendix 1, table 1 ("Intrinsic electrophysiological properties of experimental
 # cells"), read from the PDF 2026-10-23. These are the data the CA1 model of that paper was fitted to (Soltesz lab
 # whole-cell recordings, mouse; raw files on OSF). Temperature and [Ca2+]o are NOT stated in the text read: unverified.
+# Firing columns read 2026-10-29 from the eLife HTML (Appendix 1 table 1 and table 2). Threshold method: pyramidal cells
+# "CellData method #1", all others method #2 (dV/dt cutoff 28 mV/ms). Firing rates exist only as figures.
 # The model values of that paper (Table 3: rheobase Pyr 250, PV+B 300, Bis 350, O-LM 50 pA) are model outputs, not data.
 _BEZAIRE_COND = "mouse, whole-cell current clamp (Soltesz lab, unpublished or Lee et al. 2014); T and [Ca2+]o not read"
 _BEZAIRE = "Bezaire et al. 2016 eLife 5:e18566, Appendix 1 table 1"
 CELL_TARGETS = {
-    "PYR": CellTarget("PYR", 17, (139.5, 38.8), (21.5, 8.6), (182.4, 55.7), _BEZAIRE, _BEZAIRE_COND, rmp_mv=(-70.7, 1.2)),
-    "PV": CellTarget("PV basket", 7, (65.2, 16.2), (13.3, 5.4), (307.1, 109.7), _BEZAIRE, _BEZAIRE_COND, rmp_mv=(-61.4, 2.0)),
-    "BiS": CellTarget("Bistratified", 3, (109.1, 30.5), (12.2, 0.6), (333.3, 57.7), _BEZAIRE, _BEZAIRE_COND, rmp_mv=(-63.6, 4.7)),
-    "OLM": CellTarget("O-LM", 3, (592.3, 97.0), (41.4, 11.7), (20.0, 0.0), _BEZAIRE, _BEZAIRE_COND, rmp_mv=(-64.8, 1.3)),
+    "PYR": CellTarget("PYR", 17, (139.5, 38.8), (21.5, 8.6), (182.4, 55.7), _BEZAIRE, _BEZAIRE_COND, rmp_mv=(-70.7, 1.2),
+                      isi_ms=(134.0, 44.0), grid_pa=(-400.0, 50.0), threshold_mv=(-36.7, 2.6),
+                      spike_amp_mv=(78.2, 7.2), ahp_mv=(8.6, 2.1), sag_mv=(7.0, 2.2)),
+    "PV": CellTarget("PV basket", 7, (65.2, 16.2), (13.3, 5.4), (307.1, 109.7), _BEZAIRE, _BEZAIRE_COND, rmp_mv=(-61.4, 2.0),
+                     isi_ms=(74.2, 36.4), grid_pa=(-300.0, 50.0), threshold_mv=(-35.3, 3.7),
+                     spike_amp_mv=(51.1, 9.0), ahp_mv=(18.0, 2.7), sag_mv=(1.8, 0.5)),
+    "BiS": CellTarget("Bistratified", 3, (109.1, 30.5), (12.2, 0.6), (333.3, 57.7), _BEZAIRE, _BEZAIRE_COND, rmp_mv=(-63.6, 4.7),
+                      isi_ms=(24.5, 21.8), grid_pa=(-300.0, 50.0), threshold_mv=(-31.9, 4.2),
+                      spike_amp_mv=(47.3, 6.8), ahp_mv=(22.6, 0.7), sag_mv=(1.7, 0.6)),
+    "OLM": CellTarget("O-LM", 3, (592.3, 97.0), (41.4, 11.7), (20.0, 0.0), _BEZAIRE, _BEZAIRE_COND, rmp_mv=(-64.8, 1.3),
+                      isi_ms=(101.9, 30.1), grid_pa=(-100.0, 30.0), threshold_mv=(-44.2, 2.3),
+                      spike_amp_mv=(76.3, 6.1), ahp_mv=(22.1, 4.7), sag_mv=(10.4, 3.8)),
+}
+
+
+@dataclass(frozen=True)
+class ChannelParam:
+    """One channel property read from a source."""
+    value: float
+    sd: float
+    unit: str
+    source: str
+    conditions: str
+    status: str = "unverified"
+
+
+# O-LM Ih reversal. The Bezaire 2016 O-LM template never sets eh, so the published model runs its HCN at the ion default
+# (0 mV); ch_HCNolm.mod declares -32.9 mV and quotes the paper below. Read from that file's comment, not from the paper.
+CHANNEL_PARAMS = {
+    "OLM_eh": ChannelParam(-32.9, 1.1, "mV",
+                           "Maccaferri & McBain 1996 J Physiol 497:119-130, as quoted in ch_HCNolm.mod (Bezaire 2016 code)",
+                           "rat CA1 stratum oriens-alveus interneurons; T and [Ca2+]o not read", status="secondary"),
 }

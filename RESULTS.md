@@ -261,3 +261,165 @@ PYR dendritic leak 2e-6 S/cm². Four features do not constrain the firing patter
 and the response to synaptic input are not checked. The mouse data are compared with parameters later used with rat
 synaptic data. The calibrated cells are **not yet used** by `circuit.py` (the S3 pilot of §4 still has the placeholder
 cells), so §4 is unchanged.
+
+## §7. S3b: interneurons with the Bezaire 2016 dendritic morphology
+
+`python run_s3b.py fit <PV|BiS|OLM>` (now the default for interneurons; `fit <cell> point` reproduces §6); results in
+`results/s3b_<cell>_dend.json`. Morphology `cells.IN_MORPH`, taken from the Bezaire et al. 2016 model code
+(github.com/mbezaire/ca1, commit a8655fa, `cells/class_pvbasketcell.hoc`, `class_bistratifiedcell.hoc`,
+`class_olmcell.hoc`; status: model value, simplified, not a reconstruction):
+- PV basket and bistratified (one morphology in that code): soma 20 × 10 µm, two apical trees of five sections (600 µm,
+  diameter 4 → 1 µm) and two basal trees of three sections (300 µm, 2 → 1 µm); cm 1.4 µF/cm², Ra 100 Ω cm.
+- O-LM: soma 20 × 10 µm, two dendrites of 250 µm × 3 µm, axon stub 150 µm × 1.5 µm; cm 1.3 µF/cm², Ra 150 Ω cm.
+
+Channels are **not** Bezaire's: `hh` in the soma, passive dendrites and axon (Bezaire has Na and K in the dendrites of all
+three cells and HCN in the O-LM soma). Seven free parameters: dendritic leak, dendrite diameter scale (bounded 0.5–2, so the
+morphology stays near the source), soma Na and K scales (separate), soma leak, dendritic and soma leak reversals. Rheobase
+searched up to 3 nA. Two starts: dendritic leak from g = 1/(Rin × membrane area) with Na/K scale 1 and 0.1. Scoring as §6.
+
+The membrane area alone almost gives the passive targets: with cm from the source, C = 167 pF (PV/BiS morphology) and
+79 pF (O-LM), against τ/Rin = 204 pF (PV), 112 pF (BiS) and 70 pF (O-LM) in the data. A first run with one shared Na/K
+scale fitted the bistratified cell but not PV (rheobase 913 pA) or O-LM (no spike up to 1 nA, flat penalty); separating
+the Na and K scales and widening the rheobase search fixed PV.
+
+| Cell | RMP mV (target) | Rin MΩ (target) | τ_m ms (target) | Rheobase pA (target) | residuals [Rin, τ, rheo, RMP] | sum sq | §6 one-compartment |
+|---|---|---|---|---|---|---|---|
+| PV basket | −61.4 (−61.4) | 65.2 (65.2) | 13.3 (13.3) | 306.9 (307.1) | 0.00, 0.00, 0.00, 0.00 | 0.00 | 4.81 |
+| Bistratified | −64.5 (−63.6) | 107.7 (109.1) | 12.2 (12.2) | 332.9 (333.3) | −0.05, 0.01, −0.01, −0.19 | 0.04 | 0.14 |
+| O-LM | −64.9 (−64.8) | 850 (592) | 63.3 (41.4) | 22.0 (20.0) | 2.20, 1.50, 0.94, −0.06 | 7.99 | 14.23 |
+
+Fitted values: PV dendrite diameter scale 1.22, Na 1.67 × and K 0.30 × the `hh` default, soma leak 4.4e-4 S/cm² with
+reversal −82 mV (a K-like resting conductance); bistratified scale 0.84, Na 1.0 ×, K 0.62 ×; O-LM scale 1.01, Na 0.97 ×,
+K 0.27 ×. PV and bistratified now match all four features **with a sourced morphology and no lumped soma**. O-LM still
+misses Rin and τ (1.5–2.2 tolerance units): with a 20 pA rheobase the cell must be 12 mV from threshold at Rin 592 MΩ, and
+the fit trades Rin up to reach threshold. The missing mechanism is probably Ih, which lowers Rin and τ near rest; Bezaire's O-LM has
+HCN (`gH` 5e-4 S/cm²) and the experimental O-LM Rin is taken at a step where Ih is active. Not tested.
+
+**Temperature.** No script sets `h.celsius`, so every simulation so far runs at NEURON's default 6.3 °C, where `hh`
+(squid axon kinetics) is calibrated. Bezaire's model runs at 34 °C. Rin, τ and RMP do not depend on it much; rheobase and
+everything spike-timing related do. This affects the PYR of §6, these cells and the S3 pilot of §4.
+
+Not checked: f–I curve, spike shape, adaptation, synaptic responses. `circuit.py` still uses the point placeholder
+interneurons (default `INParams.morph = "point"`), so §4 is unchanged.
+
+## §8. S3b: Bezaire 2016 channels at 34 °C, verified port, refit, and O-LM HCN
+
+**Port.** The 13 channel files of the Bezaire et al. 2016 model (github.com/mbezaire/ca1, commit a8655fa, CC0) are in
+`mod/` unchanged (`mod/BEZAIRE_CHANNELS.md`); `cells.build_bezaire_interneuron` rebuilds the PV basket, bistratified and
+O-LM templates in Python (`cells.BEZ_CHANNELS`, `IN_MORPH`), 34 °C. **Verified** against the original hoc templates
+(`reference/bezaire2016/`, `tests/test_s3b_bezaire_cells.py`, −50 pA and +500 pA steps): O-LM agrees to 2e-10 mV, PV and
+bistratified to 3e-8 mV subthreshold and 2e-3 / 7e-4 mV during spiking, with equal spike counts; with the template's own
+section lengths copied in the residual drops to 6e-11 mV, so it is geometry rounding of the 3-D points.
+Facts of the published templates that the port reproduces (found by running them):
+- PV and bistratified do not insert `iconc_Ca` (Ca²⁺ is not accumulated; cai = 5e-5 mM, eca fixed at 171 mV);
+- O-LM sets neither `ena`/`ek` (NEURON defaults 50 / −77 mV) nor `eh`: its HCN runs at **eh = 0 mV**, although
+  `ch_HCNolm.mod` declares −32.9 mV from Maccaferri & McBain 1996 (now `params.CHANNEL_PARAMS["OLM_eh"]`, secondary);
+- `nseg` is computed before Ra and cm are set (with NEURON's defaults).
+
+**Settling.** The O-LM HCN time constant at rest is about 2.6 s (from the mod file's rate; 2.8 ± 0.8 s at −70 mV
+quoted from Maccaferri & McBain). Measured 50 ms after initialisation (the §6–§7 protocol), the published O-LM gives Rin
+334 MΩ; settled, 227 MΩ. `calibrate.measure(settle_ms=...)` now runs the cell for that long at zero current with a 10 ms
+step (as Bezaire's presimulation; the features agree with a 0.025 ms settle to within 0.02%), saves the state and
+starts every recording from it. All §8 numbers use 20 s.
+
+**Published cells, measured** (no fitting; O-LM with eh = −32.9 mV, the §8 choice; with eh = 0 as published: RMP
+−67.2, Rin 227, τ 27.8, rheobase 30.8):
+
+| Cell | RMP mV (target) | Rin MΩ (target) | τ_m ms (target) | Rheobase pA (target) | residuals [Rin, τ, rheo, RMP] |
+|---|---|---|---|---|---|
+| PV basket | −65.0 (−61.4) | 52.2 (65.2) | 7.0 (13.3) | 289 (307) | −0.90, −1.58, −0.17, −1.81 |
+| Bistratified | −67.0 (−63.6) | 98.9 (109.1) | 14.7 (12.2) | 313 (333) | −0.35, 1.85, −0.35, −0.73 |
+| O-LM | −70.1 (−64.8) | 200 (592) | 19.4 (41.4) | 44.7 (20.0) | −6.62, −2.68, 8.04, −2.65 |
+
+**Refit** (`python run_s3b.py fit <cell> bez`; `results/s3b_<cell>_bez.json`): scales on the published leak, Na and fast
+K (`ch_Kdrfast`) densities, dendrite diameter scale (0.5–2), leak reversal; O-LM also the HCN scale. Start = the
+published cell. Other channels (A-type K, Ca, KCa) unchanged.
+
+| Cell | RMP | Rin | τ_m | Rheobase | residuals | fitted scales (leak, diam, Na, K[, HCN]), e_leak |
+|---|---|---|---|---|---|---|
+| PV basket | −62.5 | 54.6 | 10.3 | 202 | −0.72, −0.64, −1.17, −0.56 | 0.72, 1.30, 1.03, **0.155**; −62.5 mV |
+| Bistratified | −65.3 | 95.5 | 12.2 | 315 | −0.48, 0.02, −0.33, −0.37 | 1.18, 0.89, 1.00, 1.01; −65.3 mV |
+| O-LM with HCN | −65.3 | 340 | 27.3 | 16.8 | −3.39, −1.47, −1.72, −0.23 | 0.40, **0.60**, 1.53, **0.10**, 1.79; −56.3 mV |
+| O-LM, HCN removed | −66.3 | 348 | 31.3 | 16.8 | −3.24, −0.99, −1.72, −0.75 | 2.86, **0.59**, 3.63, 1.00; −43.6 mV |
+
+**Firing (f–I, Hz in a 400 ms step at 0.3 / 0.5 / 1 / 2 nA), not a fit target:**
+
+| Cell | published | fitted |
+|---|---|---|
+| PV basket | 8 / 48 / 98 / 162 | 35 / 65 / 108 / 118 |
+| Bistratified | 0 / 42 / 90 / 158 | 0 / 50 / 100 / 172 |
+| O-LM (eh −32.9) | 80 / 122 / 195 / 2 | 132 / 180 / **8** / 2 |
+
+What this shows:
+- **Bistratified**: the refit moves every scale by < 20% and keeps the f–I curve; all four features within 0.5
+  tolerance units. Usable.
+- **PV**: the four-feature fit improves (sum sq 6.6 → 2.6) only by cutting the fast delayed rectifier to 15%, and the
+  f–I curve then saturates (118 vs 162 Hz at 2 nA). PV basket cells are fast-spiking through high Kv3-type K
+  conductance (textbook, not read here), so this fit is less bio-plausible than the published cell, which is within
+  1.8 tolerance units on every feature.
+- **O-LM**: neither the published cell nor any fit within the bounds reaches Rin 592 MΩ (best 340–348), and the fits
+  press the dendrite diameter onto its lower bound and enter depolarisation block at 1 nA. **HCN does not help the four
+  features**: with and without it the fits are about equally good (sum sq 16.7 vs 15.0); the §7 guess that missing Ih
+  explained the O-LM misfit is not supported. HCN at −32.9 mV is still the bio-plausible choice for sag, rebound and
+  slow pacemaking, which these four features do not test. The O-LM target is weak: n = 3, rheobase 20 ± 0 pA on a 50 pA grid.
+- Four static features do not constrain a cell with this many channels: two of the three fits trade firing behaviour for feature
+  agreement. A firing target (f–I curve, or the spike-train features of Migliore 2018 / HippoUnit) is needed before
+  fitting further.
+
+Temperature: the interneurons are now at 34 °C; `build_bezaire_interneuron` sets `h.celsius` globally. The PYR of §6
+(`hh`) was fitted at 6.3 °C and becomes a different cell at 34 °C, so it must be revisited before the circuit uses both.
+`circuit.py` is unchanged (point placeholders).
+
+## §9. S3b: firing target, chosen interneurons, and the pyramidal cell at 34 °C
+
+Project owner's decision (2026-10-29): the circuit uses the published PV basket cell, the published O-LM cell with
+eh −32.9 mV (`params.CHANNEL_PARAMS["OLM_eh"]`), and the bistratified refit of §8 (`cells.TIER_B_IN`).
+
+**Firing target.** From Bezaire 2016 Appendix 1 table 1 (mouse): ISI, threshold, spike amplitude, AHP and sag
+(`params.CELL_TARGETS`, fields `isi_ms` … `sag_mv`), with each cell type's current-step grid from table 2. Measured by
+`calibrate.firing`. Assumptions, because the paper does not state them:
+- ISI: mean ISI at the lowest grid level that gives ≥ 2 spikes in the step; threshold, amplitude and AHP are from the first 3 spikes.
+- Threshold: dV/dt = 28 mV/ms for all cells. The paper uses this "method #2" for interneurons but method #1 for
+  pyramidal cells.
+- Step 400 ms. **The step duration is not stated, and the ISI depends strongly on it:** at 1000 ms PV gives 150 instead
+  of 110 ms, and O-LM gives 144 ms at 50 pA instead of 48 ms at 80 pA. Bistratified barely changes (34 vs 33 ms). The ISI target is
+  therefore only as good as the guessed protocol; ± is not stated to be SD.
+- Sag: at the most hyperpolarised grid level.
+ISI is a fit residual (5th, after Rin, τ, rheobase, RMP); threshold, amplitude, AHP and sag are checks only.
+
+**Chosen interneurons, settled 20 s, 34 °C (target in parentheses):**
+
+| Cell | ISI ms | threshold mV | amplitude mV | AHP mV | sag mV | residuals Rin, τ, rheo, RMP, ISI |
+|---|---|---|---|---|---|---|
+| PV basket (published) | 110 (74 ± 36) | −31.7 (−35.3) | 85.0 (51.1) | 45.5 (18.0) | 0 (1.8) | −0.90, −1.58, −0.17, −1.81, 0.81 |
+| Bistratified (refit) | 33 (25 ± 22) | −19.0 (−31.9) | 42.0 (47.3) | 57.3 (22.6) | — | −0.48, 0.02, −0.33, −0.37, 0.34 |
+| O-LM (published, eh −32.9) | 48 @ 80 pA (102 ± 30) | −29.4 (−44.2) | 33.3 (76.3) | 42.3 (22.1) | 14.1 (10.4) | −6.62, −2.68, 8.04, −2.65, −2.56 |
+
+The spike shapes miss widely (AHP ≈ 2× in all three; BiS and O-LM thresholds 13–15 mV too depolarised). None of these was fitted.
+
+**Pyramidal cell at 34 °C.** The `hh` PYR of §6 (6.3 °C) is replaced by Bezaire's `poolosyncell` (Poolos 2002-based,
+202 sections, 1104 segments), loaded from `reference/bezaire2016/class_poolosyncell.hoc` by `cells.build_bezaire_pyr`,
+with channels `ch_Navp/ch_Navaxonp/ch_Kdrp/ch_KvAproxp/ch_KvAdistp/ch_HCNp` (`mod/`). The fit has 6 parameters: scales on leak, Na, Kdr, HCN, KA
+and e_pas. Bounds 0.1–10 and −90…−50 mV; 154 evaluations; `run_s3b.py fit PYR bez` → `results/s3b_PYR_bez.json`.
+
+| PYR | RMP | Rin MΩ | τ ms | rheo pA | ISI ms | thr mV | amp mV | AHP mV | sag mV | sum sq |
+|---|---|---|---|---|---|---|---|---|---|---|
+| target | −70.7 ± 1.2 | 139.5 ± 38.8 | 21.5 ± 8.6 | 182 ± 56 | 134 ± 44 | −36.7 ± 2.6 | 78.2 ± 7.2 | 8.6 ± 2.1 | 7.0 ± 2.2 | |
+| published | −63.0 | 70.6 | 5.7 | 240 | 74 | −37.3 | 77.4 | 16.9 | 6.6 | 36.2 |
+| refit | −71.5 | 129.4 | 15.1 | 248 | 129 | −35.7 | 65.6 | 16.6 | 4.8 | 2.0 |
+
+Refit scales: leak 0.30, Na 0.69, Kdr 1.46, **HCN 0.10**, KA 1.57, e_pas −75.2 mV. The published values match
+Bezaire's own Table 3 model (62.2 MΩ, 4.8 ms, −63 mV, 250 pA), which confirms the port.
+
+f–I (spikes in 400 ms at 250 / 300 / 400 / 500 / 700 / 1000 / 1500 pA): published 5/10/15/19/26/9/3, refit
+3/9/15/19/27/17/3. Both are regular up to 700 pA (≈ 67 Hz) and enter **depolarisation block at ≥ 1 nA**. This comes
+from the template, not from the refit.
+
+What this shows:
+- The refit improves every passive feature and the ISI (sum sq 36 → 2.0), keeps the f–I curve, and leaves threshold
+  in range. Spike amplitude drops by 1.7 SD (Na × 0.69). AHP stays ≈ 2× the target, as in the published cell.
+- It reaches the high Rin by cutting HCN to 10% and leak to 30%. CA1 pyramidal cells have a strong dendritic Ih
+  gradient (textbook, not read here), and Ih shapes EPSP summation, which matters for plasticity, so the HCN cut needs
+  checking. Sag (4.8 mV) is still within 1 SD.
+- Every cell is now at 34 °C with Bezaire channels. `circuit.py` still uses point placeholders.
+
