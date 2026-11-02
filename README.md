@@ -18,6 +18,7 @@ spike generators. Tier B = Tier A plus PV basket, bistratified and O-LM cells.*
 - [docs/handoff.md](docs/handoff.md): decisions, status, blockers and next steps (read first).
 - [docs/plan.md](docs/plan.md): the plan, stages S0–S7 (S3 is S3a–S3e) and acceptance criteria.
 - [docs/replan_stp_balance.md](docs/replan_stp_balance.md): state of the programmed CA1 and the upscaling/downscaling balance inside the STP boundary.
+- [docs/circuit_up_down_scaling.md](docs/circuit_up_down_scaling.md): diagram of where upscaling (facilitation) and downscaling (depletion, presynaptic A1R) act in the circuit, and their size per pathway.
 - [docs/ca1_architecture_literature.md](docs/ca1_architecture_literature.md): the Tier-B circuit checked against the literature, with the STP parameters in `params.py`.
 - [docs/sources_to_download.md](docs/sources_to_download.md): papers to download, by what they unblock.
 - [hippocampal_plasticity_model.md](hippocampal_plasticity_model.md): the main approach file, the plasticity model (timescales, cellular vs. system consolidation, tag/capture, graded tag amplitude `V_seg`).

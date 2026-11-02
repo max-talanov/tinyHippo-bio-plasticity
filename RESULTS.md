@@ -586,3 +586,29 @@ terms grow together with rate, and the net is their small difference. At 20 Hz S
 down over 1 s. On the depressing pathways, facilitation contributes almost nothing below ~50 Hz (τ_fac ≤ 10 ms), so
 their weight profile is depletion alone. At 80 Hz they gain some facilitation, but the depletion term is about 10×
 larger. O-LM → PYR is the most depressed synapse at every rate (3% of its first-spike weight at 80 Hz).
+
+## §13. Where upscaling and downscaling act in the Tier-B circuit, and their size at 20 Hz (documentation figures)
+
+`make_fig_up_down.py` → `docs/figures/circuit_up_down_sites.svg` (schematic, no data) and
+`docs/figures/circuit_up_down_scale_20Hz.svg`; described in `docs/circuit_up_down_scaling.md`. The factors are the
+last spike of a long 20 Hz train in closed form (`analysis.tm_pi_terms`, checked against NEURON in §10 and §12),
+§3 STP parameters, and for "+ A1R" `PRESYN_INHIB["SC_A1R"]` (§11; c is per SC volley, so applying it per spike assumes
+the SC fibres fire together). No circuit run (`circuit._place` is still a TODO), no time compression, no seeds.
+
+| Pathway | facilitation | depletion | phasic A1R | tonic A1R | net |
+|---|---|---|---|---|---|
+| SC → PYR | ×2.40 | ×0.48 | – | – | ×1.15 |
+| SC → PYR, + A1R | ×2.69 | ×0.61 | ×0.62 | ×0.85 | ×0.86 |
+| SC → PV, BiS | ×3.21 | ×0.33 | – | – | ×1.07 |
+| SC → PV, BiS, + A1R | ×3.69 | ×0.45 | ×0.62 | ×0.85 | ×0.88 |
+| PYR → O-LM | ×6.43 | ×0.43 | – | – | ×2.77 |
+| PYR → PV, BiS | ×1.01 | ×0.36 | – | – | ×0.36 |
+| PV → PYR | ×1.00 | ×0.25 | – | – | ×0.25 |
+| BiS → PYR | ×1.00 | ×0.26 | – | – | ×0.26 |
+| O-LM → PYR | ×1.00 | ×0.12 | – | – | ×0.12 |
+
+Upscaling (facilitation) acts only at SC → PYR/T, SC → PV/BiS and PYR → O-LM; downscaling (depletion) acts at every
+synapse, plus A1R inhibition at SC terminals. At 20 Hz only PYR → O-LM stays clearly upscaled; with A1R both SC
+branches turn net down by about the same amount. Inhibition onto PYR (×0.12–0.26) depresses more than SC excitation
+(×0.86–1.15), so on single-synapse grounds sustained 20 Hz activity tilts PYR input towards excitation. This is a
+prediction to test in the circuit (S3c), not a circuit result.
