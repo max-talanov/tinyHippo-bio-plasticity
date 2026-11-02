@@ -557,3 +557,32 @@ What changed against §10:
 Status: `SC_A1R` is primary (one paper, text values; kinetics and c fitted here, the tonic value approximate).
 `SC_GABAB` has the maximum only. Still to read: a GABA_B time course at SC→CA1 (Molyneaux & Hasselmo 2002) and an
 A1R-selective tonic measurement (DPCPX rather than theophylline; Wu & Saggau 1994 full text).
+
+## §12. S3a: facilitation vs depression on every STP pathway (figures)
+
+`python run_s3a_stp_all.py` → `results/s3a_stp_all.csv` and four 1650 × 1275 px figures (11 × 8.5 in, 150 dpi), each
+a 3 × 3 grid with one panel per pathway (T → PYR uses the SC → PYR parameters):
+- `docs/figures/s3a_stp_all_profiles.png`: per-spike weight w_eff/(wU) in 1 s trains at 5, 20 and 80 Hz.
+- `docs/figures/s3a_stp_all_split_20Hz.png` and `…_split_theta.png`: per-spike split `log(w_eff/wU) = fac + dep`,
+  with facilitation (up) and depletion (down).
+- `docs/figures/s3a_stp_all_steady.png`: steady-state up and down terms against rate, with the crossover f*.
+
+Release is in closed form and checked against NEURON `TMSyn` on the same spike times: max relative difference 7.1e-13.
+Parameters are those of §3 (secondary sources), with no presynaptic inhibition (see §11 for SC). SC→PV = SC→BiS and
+PYR→PV = PYR→BiS share one parameter set, so those panels are identical.
+
+| Pathway | mean w/wU in 1 s at 5 / 20 / 80 Hz | f* (Hz) | max steady net factor (at) |
+|---|---|---|---|
+| SC → PYR (T → PYR) | 1.10 / 1.21 / 0.51 | 27.5 | 1.25 (10.8 Hz) |
+| SC → PV, SC → BiS | 1.21 / 1.22 / 0.45 | 22.5 | 1.34 (8.5 Hz) |
+| PYR → PV, PYR → BiS | 0.83 / 0.46 / 0.17 | none | 0.98 (1 Hz) |
+| PYR → O-LM | 1.90 / 2.49 / 1.03 | 75.4 | 3.32 (10.8 Hz) |
+| PV → PYR | 0.81 / 0.43 / 0.15 | none | 0.92 (1 Hz) |
+| BiS → PYR | 0.83 / 0.48 / 0.17 | none | 0.92 (1 Hz) |
+| O-LM → PYR | 0.66 / 0.25 / 0.07 | none | 0.80 (1 Hz) |
+
+The crossovers equal those of §5. What the split adds: on the facilitating pathways (SC, PYR → O-LM), up and down
+terms grow together with rate, and the net is their small difference. At 20 Hz SC → PYR sums +15.7 up against −12.0
+down over 1 s. On the depressing pathways, facilitation contributes almost nothing below ~50 Hz (τ_fac ≤ 10 ms), so
+their weight profile is depletion alone. At 80 Hz they gain some facilitation, but the depletion term is about 10×
+larger. O-LM → PYR is the most depressed synapse at every rate (3% of its first-spike weight at 80 Hz).
