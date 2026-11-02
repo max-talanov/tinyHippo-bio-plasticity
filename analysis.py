@@ -25,6 +25,43 @@ def tm_amplitudes(spikes, U, tau_rec, tau_fac):
     return amps
 
 
+def tm_pi_terms(spikes, gaba, U, tau_rec, tau_fac, i_tonic=0.0, i_max=0.0, c=0.0, tau_r=50.0, tau_d=300.0):
+    """Tsodyks-Markram release with presynaptic GPCR inhibition of U (reference for mod/TMSynPI.mod).
+
+    gaba: times of GABA events onto the terminal. D(t) = sum_k c nrm (exp(-(t-t_k)/tau_d) - exp(-(t-t_k)/tau_r)),
+    I = i_max (1 - exp(-D)), U_eff = U (1 - i_tonic) (1 - I). A GABA event at the same time as a spike counts
+    before it. Returns a dict of per-spike arrays: amp, u (u+), x (x-), ueff, iph, and the log terms
+    fac = log(u/ueff) >= 0, dep = log(x) <= 0, phasic = log(1 - iph) <= 0, tonic = log(1 - i_tonic) <= 0,
+    which sum to log(amp / U).
+    """
+    tp = tau_r * tau_d / (tau_d - tau_r) * np.log(tau_d / tau_r)
+    nrm = 1.0 / (np.exp(-tp / tau_d) - np.exp(-tp / tau_r))
+    gaba = np.sort(np.asarray(gaba, dtype=float))
+    n = len(spikes)
+    out = {k: np.empty(n) for k in ("amp", "u", "x", "ueff", "iph")}
+    u, x, t_prev = 0.0, 1.0, None
+    for k, t in enumerate(spikes):
+        dt_g = t - gaba[gaba <= t]
+        D = c * nrm * np.sum(np.exp(-dt_g / tau_d) - np.exp(-dt_g / tau_r))
+        iph = i_max * (1.0 - np.exp(-D))
+        ueff = U * (1.0 - i_tonic) * (1.0 - iph)
+        if t_prev is None:
+            um, xm = 0.0, 1.0
+        else:
+            dt = t - t_prev
+            um = u * np.exp(-dt / tau_fac) if tau_fac > 0 else 0.0
+            xm = 1.0 - (1.0 - x) * np.exp(-dt / tau_rec)
+        up = um + ueff * (1.0 - um)
+        for key, val in (("amp", up * xm), ("u", up), ("x", xm), ("ueff", ueff), ("iph", iph)):
+            out[key][k] = val
+        x, u, t_prev = xm * (1.0 - up), up, t
+    out["fac"] = np.log(out["u"] / out["ueff"])
+    out["dep"] = np.log(out["x"])
+    out["phasic"] = np.log(1.0 - out["iph"])
+    out["tonic"] = np.full(n, np.log(1.0 - i_tonic))
+    return out
+
+
 def tm_amplitudes_ode(spikes, U, tau_rec, tau_fac):
     """Independent check of tm_amplitudes: integrate the ODEs numerically, jump at spikes."""
     def rhs(_, y):

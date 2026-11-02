@@ -106,6 +106,34 @@ SLOW_TIMESCALES = {
 
 
 @dataclass(frozen=True)
+class PresynInhib:
+    """Presynaptic GPCR inhibition of U (downscaling #2), as in mod/TMSynPI.mod. U_eff = U (1 - i_tonic) (1 - I(t)),
+    I = i_max (1 - exp(-D)), D = GABA drive (difference of exponentials tau_r, tau_d; one event peaks at c)."""
+    i_tonic: float              # tonic fraction of U removed (A1R, ambient adenosine)
+    i_max: float                # maximal phasic fraction removed (GABA_B, saturating agonist)
+    c: float                    # peak drive of one GABA event (dimensionless)
+    tau_r: float                # ms
+    tau_d: float                # ms
+    source: str = ""
+    conditions: str = ""
+    status: str = "unverified"
+
+
+# NONE of these values was read from a paper; they are orders of magnitude from memory, to be checked against the
+# sources named, and every run sweeps them (docs/plan.md S3d: "run as a sweep, report shifts not absolute values").
+PRESYN_INHIB = {
+    "SC": PresynInhib(
+        i_tonic=0.25, i_max=0.8, c=0.3, tau_r=50.0, tau_d=300.0,
+        source="to check: A1R tonic block of SC transmission (Dunwiddie & Masino 2001 Annu Rev Neurosci 24:31); "
+               "GABA_B heterosynaptic inhibition of SC release, time course and maximum (Isaacson, Solis & Nicoll "
+               "1993 Neuron 10:165; Davies et al. 1991 Nature 349:609)",
+        conditions="not read; rat hippocampal slices in the sources named. c (GABA drive per feedforward "
+                   "interneuron spike) has no source: free parameter",
+        status="unverified"),
+}
+
+
+@dataclass(frozen=True)
 class CellTarget:
     """Intrinsic properties of one cell class, read from a source (mean, SD where given)."""
     name: str

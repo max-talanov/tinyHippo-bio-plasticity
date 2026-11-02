@@ -121,3 +121,46 @@ def epsc_amplitudes(t, i, spikes, window=None):
         sel = (t >= ts) & (t < t_end)
         amps[n] = base - np.min(i[sel])
     return amps
+
+
+def run_tm_pi(spikes, gaba, U, tau_rec, tau_fac, w=1e-3, cvode=True, **inhib):
+    """Drive one TMSynPI with release events `spikes` and GABA events `gaba` (ms) on two NetCons (weight[1] = 0, 1).
+
+    inhib: i_tonic, i_max, c, tau_r, tau_d (mod/TMSynPI.mod). Returns a dict of per-spike arrays read from the
+    mechanism right after each release: amp, u (u+), x (x-), ueff, iph.
+    """
+    soma = h.Section(name="soma")
+    soma.L = soma.diam = 20.0
+    soma.insert("pas")
+    syn = h.TMSynPI(soma(0.5))
+    syn.U, syn.tau_rec, syn.tau_fac = U, tau_rec, tau_fac
+    for k, v in inhib.items():
+        setattr(syn, k, v)
+    nc_rel, nc_gaba = h.NetCon(None, syn), h.NetCon(None, syn)
+    nc_rel.weight[0], nc_rel.weight[1] = w, 0
+    nc_gaba.weight[0], nc_gaba.weight[1] = 0, 1
+
+    def schedule():
+        for ts in spikes:
+            nc_rel.event(float(ts))
+        for ts in gaba:
+            nc_gaba.event(float(ts))
+
+    fih = h.FInitializeHandler(1, schedule)
+    cv = h.CVode()
+    if cvode:
+        cv.active(1)
+        cv.atol(CVODE_ATOL)
+        cv.rtol(1e-9)
+    else:
+        cv.active(0)
+        h.dt = DT_FIXED
+    h.finitialize(-65.0)
+    out = {k: [] for k in ("amp", "u", "x", "ueff", "iph")}
+    for ts in spikes:
+        _advance_to(float(ts) + 2 * DT_FIXED)
+        for k, attr in (("amp", "amp"), ("u", "u_last"), ("x", "xminus"), ("ueff", "ueff"), ("iph", "iph")):
+            out[k].append(getattr(syn, attr))
+    fih = nc_rel = nc_gaba = syn = None
+    h.delete_section(sec=soma)
+    return {k: np.array(v) for k, v in out.items()}

@@ -423,3 +423,67 @@ What this shows:
   checking. Sag (4.8 mV) is still within 1 SD.
 - Every cell is now at 34 °C with Bezaire channels. `circuit.py` still uses point placeholders.
 
+## §10. S3a: presynaptic GPCR inhibition (downscaling #2) inside STP, and the up/down balance of the per-spike weight
+
+`python run_s3a_downscaling.py` → `results/s3a_downscaling.csv`, `docs/figures/s3a_downscaling_profiles.png`,
+`docs/figures/s3a_downscaling_balance.png`. Mechanism `mod/TMSynPI.mod`: `TMSyn` plus GPCR inhibition of `U`, a tonic
+part (A1R-like, `U·(1−i_tonic)`) and a phasic part (GABA_B-like, `U·(1−I(t))`). `I = i_max (1 − e^−D)`, and D is driven by
+GABA events onto the terminal (difference of exponentials τ_r 50 / τ_d 300 ms; one event peaks at `c`). The GABA source is a
+feedforward interneuron that fires once per presynaptic spike, 3 ms later. This is a proxy: in the circuit, the
+interneurons set it.
+
+**Verification.** `tests/test_s3a_presyn_inhib.py` (7 tests) checks `TMSynPI` against the closed form
+`analysis.tm_pi_terms`. Max relative difference: 1e-15 in the tests and 1.3e-14 over all trains of this run. With no
+inhibition, `TMSynPI` equals `TMSyn`, and the log terms below sum to log(amp/U) to 1e-12. NMODL pitfall found: a
+NET_RECEIVE without an `INITIAL` block has `weight[1]` zeroed by `finitialize`, which turned GABA events into releases.
+
+**Up/down split.** Per spike n, `log(w_eff,n / (w·U)) = fac + dep + phasic + tonic`. `fac = log(u⁺/U_eff)` (facilitation)
+is the upscaling term. The three downscaling terms are `dep = log x⁻` (depletion, #1), `phasic = log(1−I)` and
+`tonic = log(1−i_tonic)` (#2). This is an identity on the actual trajectory, so interactions between the terms are visible
+in it.
+
+**Parameters.** STP from `params.PATHWAYS` (secondary sources). Inhibition from `params.PRESYN_INHIB["SC"]`
+(i_tonic 0.25, i_max 0.8, c 0.3, τ 50/300 ms). **None of these was read from a paper; all are marked unverified**, so
+everything is also swept. Only SC terminals are modelled (SC→PYR, SC→PV = SC→BiS), the terminals where A1R and GABA_B
+inhibition of release is described.
+
+**SC→PYR per train** (sum over spikes of each term; mean w_eff/(wU)):
+
+| Train | condition | mean w/wU | up (fac) | dep | phasic | tonic |
+|---|---|---|---|---|---|---|
+| 5 Hz, 1 s | STP only | 1.10 | 0.76 | −0.29 | 0 | 0 |
+| | + tonic + phasic | 0.68 | 0.91 | −0.18 | −1.23 | −1.44 |
+| 20 Hz, 1 s | STP only | 1.21 | 15.7 | −12.0 | 0 | 0 |
+| | + phasic | 0.76 | 20.4 | −6.9 | −19.7 | 0 |
+| | + tonic + phasic | 0.63 | 20.9 | −5.5 | −19.7 | −5.8 |
+| 80 Hz, 1 s | STP only | 0.51 | 116.3 | −173.7 | 0 | 0 |
+| | + phasic | 0.45 | 167.4 | −119.1 | −117.0 | 0 |
+| | + tonic + phasic | 0.43 | 172.2 | −105.1 | −117.0 | −23.0 |
+| theta burst (10 × 4 @ 100 Hz) | STP only | 1.13 | 35.8 | −31.3 | 0 | 0 |
+| | + tonic + phasic | 0.61 | 45.1 | −12.5 | −42.8 | −11.5 |
+
+**STP absorbs part of the presynaptic inhibition, and more at higher rates.** Lowering `U` leaves more vesicles
+(dep less negative) and more room for facilitation (fac larger). The fraction of the direct phasic term that comes back
+through these two terms is 14% at 5 Hz, 50% at 20 Hz, 73% at 40 Hz, 56% in the theta burst and 90% at 80 Hz. For the tonic
+term it is 8% at 5 Hz, 53% at 20 Hz and 96% at 80 Hz. So GPCR inhibition is a strong downscaling at theta-range rates
+and almost none at gamma and ripple rates. This extends §5 H4, which found the same for a static `U` gain, to the
+dynamic case.
+
+**Steady-state balance `B(f) = R_ss / U`** (nominal `U`):
+
+| | f* SC→PYR (Hz) | max B | f* SC→PV (Hz) | max B |
+|---|---|---|---|---|
+| STP only | 27.3 | 1.25 | 22.5 | 1.33 |
+| phasic c = 0.03 / 0.1 / 0.3 / 1 | 23.5 / 9.7 / none / none | 1.16 / 1.00 / 0.98 / 0.95 | 20.5 / 15.0 / none / none | 1.27 / 1.13 / 0.99 / 0.95 |
+| tonic 0.125 / 0.25 / 0.5 | 25.4 / 21.4 / none | 1.16 / 1.05 / 0.84 | 21.3 / 19.3 / none | 1.23 / 1.12 / 0.90 |
+
+The upscaling window (B > 1) closes at phasic drive c ≥ 0.3 or tonic inhibition 0.5. Above ~60 Hz, every condition
+converges on the same `B`: the τ_rec limit. With strong phasic drive (c = 1), `B(f)` becomes non-monotonic, with a minimum
+near 10 Hz and partial recovery near 30 Hz. At higher rates depletion dominates, and the inhibition only redistributes
+the downscaling between terms.
+
+**Not shown.** Real GABA drive comes from interneurons whose firing depends on the circuit (S3c), not one GABA event per
+presynaptic spike. Every absolute number here depends on the unverified `PRESYN_INHIB` values. Sources to read:
+Isaacson, Solís & Nicoll 1993 (time course and size of heterosynaptic GABA_B inhibition at SC), Davies et al. 1991, and
+Dunwiddie & Masino 2001 (size of the tonic A1R block). The downscaling at E-LTP or slower timescales (#3–#13) stays
+outside STP, as in `docs/plan.md`.
