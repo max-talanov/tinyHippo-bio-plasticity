@@ -4,13 +4,15 @@ Per spike n of a train, mod/TMSynPI.mod gives the exact split
     log(amp_n / U) = fac_n + dep_n + phasic_n + tonic_n
     fac    = log(u+/U_eff) >= 0   facilitation                                   (upscaling)
     dep    = log(x-)       <= 0   vesicle depletion, #1                          (downscaling)
-    phasic = log(1 - I)    <= 0   GABA_B-like inhibition of U, driven by GABA    (downscaling, #2)
-    tonic  = log(1-i_ton)  <= 0   A1R-like tonic inhibition of U                 (downscaling, #2)
-so the per-spike weight w_eff = w * amp is w * U * exp(up + down). GABA drive: a feedforward interneuron that fires once
-per presynaptic spike, 3 ms later (a proxy: in the circuit the interneurons set it). Release is read from NEURON
+    phasic = log(1 - I)    <= 0   activity-dependent A1R inhibition of U        (downscaling, #2)
+    tonic  = log(1-i_ton)  <= 0   tonic A1R inhibition of U (ambient adenosine)  (downscaling, #2)
+so the per-spike weight w_eff = w * amp is w * U * exp(up + down). Drive: every presynaptic spike stands for a volley of
+the SC population, which releases adenosine onto the terminal with a 50 ms lag (Mitchell et al. 1993; the drive per
+volley c was measured for a 1-mV-fEPSP volley, so the population must fire with this synapse). Release is read from NEURON
 (TMSynPI.amp etc., fixed step 0.025 ms) and checked against analysis.tm_pi_terms on the same spike times.
-Parameters: STP from params.PATHWAYS (secondary sources); inhibition from params.PRESYN_INHIB["SC"] (UNVERIFIED, so
-everything is also run as a sweep). No time compression. Deterministic: no seeds.
+Parameters: STP from params.PATHWAYS (secondary sources); inhibition from params.PRESYN_INHIB["SC_A1R"] (Mitchell et
+al. 1993, rat, 34 C, 2.5 mM Ca; kinetics and c fitted here), also swept. GABA_B (#2 too) has only its maximum
+(PRESYN_INHIB["SC_GABAB"]), no kinetics, and is not run. No time compression. Deterministic: no seeds.
 Usage: python run_s3a_downscaling.py -> docs/figures/s3a_downscaling_profiles.png, docs/figures/s3a_downscaling_balance.png,
        results/s3a_downscaling.csv, tables on stdout.
 """
@@ -27,8 +29,7 @@ import protocols as pr
 from params import PATHWAYS, PRESYN_INHIB
 
 GRID = pr.DT_FIXED
-FF_DELAY = 3.0                  # ms, feedforward interneuron spike after the presynaptic spike (assumption)
-PI = PRESYN_INHIB["SC"]
+PI = PRESYN_INHIB["SC_A1R"]
 KIN = dict(tau_r=PI.tau_r, tau_d=PI.tau_d)
 CONDITIONS = {                  # name -> (i_tonic, i_max, c)
     "STP only": (0.0, 0.0, 0.0),
@@ -36,8 +37,8 @@ CONDITIONS = {                  # name -> (i_tonic, i_max, c)
     "+ phasic": (0.0, PI.i_max, PI.c),
     "+ tonic + phasic": (PI.i_tonic, PI.i_max, PI.c),
 }
-C_SWEEP = (0.03, 0.1, 0.3, 1.0)
-TONIC_SWEEP = (0.0, 0.125, 0.25, 0.5)
+C_SWEEP = (0.03, 0.1, PI.c, 1.0)
+TONIC_SWEEP = (0.0, PI.i_tonic, 0.25, 0.5)
 PATHS = ("SC_PYR", "SC_PV")    # SC terminals (SC_PV = SC_BiS, pooled fit): where A1R and GABA_B inhibition of release is described
 FREQS = np.logspace(0, np.log10(300), 19)
 
@@ -58,7 +59,7 @@ def run(sp, path, cond):
     i_tonic, i_max, c = cond
     stp = dict(U=p.U, tau_rec=p.tau_rec, tau_fac=p.tau_fac)
     inh = dict(i_tonic=i_tonic, i_max=i_max, c=c, **KIN)
-    gaba = sp + FF_DELAY
+    gaba = sp + PI.lag
     ref = an.tm_pi_terms(sp, gaba, **stp, **inh)
     got = pr.run_tm_pi(sp, gaba, **stp, cvode=False, **inh)
     err = float(np.max(np.abs(got["amp"] - ref["amp"]) / ref["amp"]))
@@ -153,8 +154,8 @@ def main():
         x = np.arange(len(sp)) + 1
         ax[1, j].bar(x, r["fac"], color="tab:green", width=0.9, label="facilitation (up)")
         bottom = np.zeros(len(sp))
-        for k, col, lab in (("dep", "tab:purple", "depletion #1"), ("phasic", "tab:orange", "phasic GPCR #2"),
-                            ("tonic", "tab:blue", "tonic GPCR #2")):
+        for k, col, lab in (("dep", "tab:purple", "depletion #1"), ("phasic", "tab:orange", "phasic A1R #2"),
+                            ("tonic", "tab:blue", "tonic A1R #2")):
             ax[1, j].bar(x, r[k], bottom=bottom, color=col, width=0.9, label=lab)
             bottom += r[k]
         net = r["fac"] + r["dep"] + r["phasic"] + r["tonic"]
@@ -165,7 +166,7 @@ def main():
     ax[1, 0].set_ylabel("log contribution, + tonic + phasic")
     ax[0, 0].legend(fontsize=7)
     ax[1, 0].legend(fontsize=7)
-    fig.suptitle("SC→PYR: per-spike weight and its up/down split (inhibition parameters UNVERIFIED)")
+    fig.suptitle("SC→PYR: per-spike weight and its up/down split (A1R inhibition: Mitchell et al. 1993, fitted)")
     fig.tight_layout()
     fig.savefig("docs/figures/s3a_downscaling_profiles.png", dpi=130)
 

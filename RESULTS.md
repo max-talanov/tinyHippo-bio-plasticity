@@ -487,3 +487,73 @@ presynaptic spike. Every absolute number here depends on the unverified `PRESYN_
 Isaacson, Solís & Nicoll 1993 (time course and size of heterosynaptic GABA_B inhibition at SC), Davies et al. 1991, and
 Dunwiddie & Masino 2001 (size of the tonic A1R block). The downscaling at E-LTP or slower timescales (#3–#13) stays
 outside STP, as in `docs/plan.md`.
+
+## §11. S3a: presynaptic inhibition with sourced values (adenosine A1R, Mitchell et al. 1993)
+
+Same run as §10 (`python run_s3a_downscaling.py`, same outputs, overwritten) with `params.PRESYN_INHIB["SC_A1R"]` in
+place of the values from memory. The phasic term is now **activity-dependent adenosine**, not GABA_B: it is the only
+presynaptic GPCR inhibition at SC terminals for which a time course and size could be read.
+
+**Sources read (2026-11-02).**
+- **Mitchell, Lupica & Dunwiddie 1993, J Neurosci 13:3439, full text.** Rat (SD, 180–220 g), slices at 34 ± 1 °C,
+  [Ca²⁺]ₒ 2.5 mM, [Mg²⁺]ₒ 2.4 mM, SC fEPSP in CA1. Conditioning volleys on an independent SC pathway at the
+  1-mV-fEPSP strength. Values used:
+  - Tonic: theophylline raised baseline responses by about 15–20% (Fig. 2 legend) → `i_tonic` 0.15.
+  - Time course: no effect at 50 ms, visible at 100 ms, maximal at about 250 ms, back to baseline at 750–1000 ms.
+  - Size: 2 pulses gave −18.5 ± 2.9% at 250 ms (n = 6); saturation from 16 pulses; 64 pulses gave 60.2 ± 7.3% of baseline.
+  - Pharmacology: 8-CPT blocked the effect (A1R). Baclofen 10 µM gave −68 ± 6% (GABA_B maximum).
+- **Wu & Saggau 1994 (Neuron) and 1995 (J Physiol 485:649), abstracts only.** A1R and GABA_B both act by reducing the
+  presynaptic Ca²⁺ transient, and the fEPSP scales with about its 4th power. DPCPX raises the fEPSP, confirming tonic
+  A1R inhibition. They give no numbers.
+- **Not readable:** Isaacson, Solís & Nicoll 1993 (abstract has no numbers) and Molyneaux & Hasselmo 2002, J Neurophysiol
+  87:1196 (GABA_B time constant in vivo; full text returned 403). **GABA_B therefore has a maximum (0.68) but no
+  kinetics, and is not run.** Dunwiddie & Masino 2001 is a review and was not used.
+
+**Fitted here.**
+- Lag 50 ms, delivered as the drive event's delay. A difference of exponentials cannot be zero at 50 ms and peak at
+  250 ms; Mitchell et al. attribute the effect to extracellular adenosine (formed from released ATP), which adds a delay.
+- τ_r 168 / τ_d 176 ms, fitted to a peak at 250 ms and 10% at 875 ms. The fit gives a peak at 222 ms, 19% at 750 ms and
+  6% at 1000 ms. The near-equal taus make an alpha-like shape.
+- `i_max` 0.40 from the 64-pulse saturation (a lower bound: the test interval for that point was not read).
+- `c` 0.315 per volley from the 2-pulse point (0.25–0.39 for ±SEM).
+- Check: the model gives −31% for 5 pulses at 200 ms; the paper's Fig. 1 example slice shows about 15–20%. Text
+  numbers only; the figures were not digitised.
+- **`c` is per population volley** (about the strength of a 1 mV fEPSP). Using it per spike of one synapse assumes the
+  SC population fires with that synapse, as in a stimulated slice. In sparse in-vivo firing, the effective drive is
+  smaller, so c = 0.315 is the upper, slice-like end; the sweep covers the rest.
+
+**SC→PYR per train** (sum of log terms; tonic 0.15, phasic as above):
+
+| Train | condition | mean w/wU | up | dep | phasic | tonic | share of the direct inhibition returned by STP |
+|---|---|---|---|---|---|---|---|
+| 5 Hz, 1 s | + tonic + phasic | 0.83 (STP only 1.10) | 0.85 | −0.22 | −0.73 | −0.81 | phasic 14%, tonic 9% |
+| 20 Hz, 1 s | + tonic + phasic | 0.96 (1.21) | 18.1 | −8.9 | −7.0 | −3.3 | phasic 57%, tonic 55% |
+| 40 Hz, 1 s | + tonic + phasic | 0.78 (0.88) | 54.1 | −41.7 | −16.6 | −6.5 | phasic 81% |
+| 80 Hz, 1 s | + tonic + phasic | 0.49 (0.51) | 141.0 | −152.8 | −35.4 | −13.0 | phasic 94%, tonic 96% |
+| theta burst | + tonic + phasic | 0.92 (1.13) | 40.4 | −21.4 | −16.3 | −6.5 | phasic 66% |
+
+The returned share is (Δup + Δdep) / |direct term|, from each condition alone against STP only.
+
+**Steady-state balance `B(f)`:**
+
+| | f* SC→PYR (Hz) | max B | f* SC→PV (Hz) | max B |
+|---|---|---|---|---|
+| STP only | 27.3 | 1.25 | 22.5 | 1.33 |
+| tonic 0.15 (sourced) | 24.9 | 1.14 | 20.9 | 1.21 |
+| phasic c = 0.1 | 21.4 | 1.11 | 19.6 | 1.22 |
+| phasic c = 0.315 (sourced) | none | 0.99 (1 Hz) | 15.9 | 1.07 |
+
+What changed against §10:
+- The sourced tonic inhibition (0.15) is smaller than the guess (0.25). The phasic inhibition has a lower maximum (0.40 vs
+  0.80), a 50 ms lag, and a shape close to an alpha function. Downscaling by inhibition is about half as strong as in §10,
+  and the ordering is unchanged.
+- The §10 conclusion holds with sourced values: STP returns 9–14% of the inhibition at 5 Hz and 94–96% at 80 Hz.
+  Presynaptic adenosine inhibition is therefore a theta-range downscaling that ripple-rate transmission barely feels.
+- New: **at slice-like drive (c = 0.315), steady-state SC→PYR transmission has no upscaling window left (max B 0.99),
+  while SC→PV keeps one up to 15.9 Hz**. SC→PV has the longer τ_rec and τ_fac and more facilitation, so it outlasts the
+  inhibition. If the drive is that strong, sustained SC activity would tilt the balance toward feedforward inhibition.
+  This needs the circuit (S3c), where the drive comes from actual population activity.
+
+Status: `SC_A1R` is primary (one paper, text values; kinetics and c fitted here, the tonic value approximate).
+`SC_GABAB` has the maximum only. Still to read: a GABA_B time course at SC→CA1 (Molyneaux & Hasselmo 2002) and an
+A1R-selective tonic measurement (DPCPX rather than theophylline; Wu & Saggau 1994 full text).

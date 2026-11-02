@@ -108,28 +108,47 @@ SLOW_TIMESCALES = {
 @dataclass(frozen=True)
 class PresynInhib:
     """Presynaptic GPCR inhibition of U (downscaling #2), as in mod/TMSynPI.mod. U_eff = U (1 - i_tonic) (1 - I(t)),
-    I = i_max (1 - exp(-D)), D = GABA drive (difference of exponentials tau_r, tau_d; one event peaks at c)."""
-    i_tonic: float              # tonic fraction of U removed (A1R, ambient adenosine)
-    i_max: float                # maximal phasic fraction removed (GABA_B, saturating agonist)
-    c: float                    # peak drive of one GABA event (dimensionless)
-    tau_r: float                # ms
-    tau_d: float                # ms
+    I = i_max (1 - exp(-D)), D = drive (difference of exponentials tau_r, tau_d; one event peaks at c), delivered `lag` ms
+    after the presynaptic volley that causes it (NetCon delay)."""
+    i_tonic: float              # tonic fraction of U removed
+    i_max: Optional[float]      # maximal phasic fraction removed
+    c: Optional[float]          # peak drive of one event (dimensionless)
+    tau_r: Optional[float]      # ms
+    tau_d: Optional[float]      # ms
+    lag: float = 0.0            # ms
     source: str = ""
     conditions: str = ""
     status: str = "unverified"
 
 
-# NONE of these values was read from a paper; they are orders of magnitude from memory, to be checked against the
-# sources named, and every run sweeps them (docs/plan.md S3d: "run as a sweep, report shifts not absolute values").
+_MITCHELL = ("Mitchell, Lupica & Dunwiddie 1993 J Neurosci 13:3439-3447 (full text read 2026-11-02; numbers from the "
+             "text and figure legends, figures not digitised)")
+_MITCHELL_COND = ("rat, male Sprague-Dawley 180-220 g; transverse slices 400 um, submerged, 34 +- 1 C; [Ca2+]o 2.5 mM, "
+                  "[Mg2+]o 2.4 mM; SC fEPSP amplitude in CA1 stratum radiatum, 1 mV test fEPSP; conditioning volleys "
+                  "on an independent SC pathway at the 1-mV-fEPSP stimulus strength")
 PRESYN_INHIB = {
-    "SC": PresynInhib(
-        i_tonic=0.25, i_max=0.8, c=0.3, tau_r=50.0, tau_d=300.0,
-        source="to check: A1R tonic block of SC transmission (Dunwiddie & Masino 2001 Annu Rev Neurosci 24:31); "
-               "GABA_B heterosynaptic inhibition of SC release, time course and maximum (Isaacson, Solis & Nicoll "
-               "1993 Neuron 10:165; Davies et al. 1991 Nature 349:609)",
-        conditions="not read; rat hippocampal slices in the sources named. c (GABA drive per feedforward "
-                   "interneuron spike) has no source: free parameter",
-        status="unverified"),
+    # Tonic and activity-dependent adenosine (A1R) at SC terminals. fEPSP reduction of an unconditioned test pathway
+    # is read as the reduction of U (first release of a resting synapse: amp = U_eff).
+    #   tonic: theophylline 200 uM raised baseline responses "approximately 15-20%" (Fig. 2 legend; non-selective
+    #          A1/A2 antagonist; stimulus readjusted in most slices) -> i_tonic = 1 - 1/1.175 = 0.15 (0.13-0.17).
+    #   phasic: no effect at 50 ms, evident at 100 ms, maximal at ~250 ms, baseline at 750-1000 ms after 1-4 pulses
+    #          -> lag 50 ms; tau_r, tau_d fitted to peak 250 ms and 10% at 875 ms (fit: peak 222 ms, 19% at 750 ms,
+    #          6% at 1000 ms; the two taus are nearly equal, i.e. an alpha-like shape). Saturates from 16 pulses;
+    #          64 pulses at 100 Hz -> 60.2 +- 7.3% of baseline -> i_max = 0.40 (a lower bound: test interval for this
+    #          point not read). 2 pulses at 100 Hz, test 250 ms later: depression 18.5 +- 2.9% (n = 6) -> c = 0.315
+    #          (0.25-0.39 for +-SEM). Blocked by 8-CPT (0.5 uM, A1R). c is per SC population volley, not per fibre.
+    #          Check: the model gives 31% for 5 pulses at 200 ms, the Fig. 1 example slice ~15-20%.
+    "SC_A1R": PresynInhib(
+        i_tonic=0.15, i_max=0.40, c=0.315, tau_r=168.0, tau_d=176.0, lag=50.0,
+        source=_MITCHELL, conditions=_MITCHELL_COND,
+        status="primary; i_tonic approximate (figure legend); tau_r, tau_d, c fitted here to values in the text"),
+    # GABA_B at SC terminals. Maximum only: baclofen 10 uM depressed the fEPSP by 68 +- 6% (unchanged by theophylline,
+    # 64 +- 6%). Kinetics and drive NOT read: Molyneaux & Hasselmo 2002 J Neurophysiol 87:1196 (in vivo time constant;
+    # full text not accessible) and Isaacson, Solis & Nicoll 1993 Neuron 10:165 (abstract only, no numbers).
+    "SC_GABAB": PresynInhib(
+        i_tonic=0.0, i_max=0.68, c=None, tau_r=None, tau_d=None,
+        source=_MITCHELL + " (baclofen control experiment)", conditions=_MITCHELL_COND,
+        status="i_max primary; kinetics and c missing"),
 }
 
 
