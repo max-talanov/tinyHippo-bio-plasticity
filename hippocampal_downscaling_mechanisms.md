@@ -416,6 +416,9 @@ model §3. Neurogenesis acts in DG, outside the minimal CA1 circuit.
 | Tag/capture models with decay | Clopath C, Ziegler L, Vasilaki E, Büsing L, Gerstner W (2008) *PLoS Comput Biol* 4:e1000248; Barrett AB, Billings GO, Morris RGM, van Rossum MCW (2009) *PLoS Comput Biol* 5:e1000259 |
 | Multi-timescale memory | Fusi S, Drew PJ, Abbott LF (2005) *Neuron* 45:599–611; Benna MK, Fusi S (2016) *Nat Neurosci* 19:1697–1706 |
 
+A ranked list of models to compare against, with PubMed-checked references, is in
+[`docs/related_models.md`](docs/related_models.md).
+
 Zenke & Gerstner (2017) argue that compensatory processes must be fast (comparable
 to the Hebbian timescale). Biologically slow scaling (#12) alone cannot stabilize
 Hebbian growth. Fast candidates are #3, #6 and #10.
