@@ -8,7 +8,7 @@ In this model a synapse changes at three nested levels, and upscaling and downsc
 
 - **Release (ms to s).** Each spike releases a fraction of the available resources. Facilitation raises that fraction; vesicle depletion and presynaptic inhibition lower it. The stored weight does not change.
 - **Tag (minutes to hours).** Coincident activity sets a local tag, graded by NMDA-receptor calcium signalling in the dendritic segment. The tag decays unless it is captured.
-- **Stored weight (hours and longer).** Capture needs both a tag and plasticity-related proteins (PRPs). Captured weight stops decaying, and slower processes can later scale it down or remove it.
+- **Stored weight (hours and longer).** Capture needs both a tag and plasticity-related proteins (PRPs). In the model, captured weight no longer decays with the tag, and slower processes can later scale it down or remove it.
 
 The hypothesis is that weakening also selects: what is captured and replayed is kept, and the rest fades or is depressed. Tag and capture are the candidate synaptic correlate of cellular consolidation, not an established identity.
 
@@ -73,7 +73,7 @@ Bars are order-of-magnitude summaries of the two source documents, not fitted va
 
 **Two meanings of "consolidation".** This document always says which one it means.
 
-- **Cellular consolidation:** for about 6 h after learning, a memory can be removed by blocking protein synthesis; after that it cannot. It happens locally in each region that stores the memory. The 6 h figure is behavioural, from a personal communication (Edu, a hippocampal neuroscientist), and is not yet checked against primary literature.
+- **Cellular consolidation:** for hours after learning, blocking protein or mRNA synthesis can prevent long-term memory. It happens locally in each region that stores the memory. Our 6 h figure comes from a personal communication (Edu, a hippocampal neuroscientist). Published rodent studies show discrete sensitive periods rather than one continuous window: around training and again about 3–6 h later (Igaz 2002), with a pattern that depends on training strength (Bourtchouladze 1998). A further phase at 12 h supports persistence (Bekinschtein 2007), and reactivated memories can become labile again (Nader 2000).
 - **System consolidation:** over days to weeks in rodents and longer in humans, a memory stops depending on the hippocampus. This shows loss of dependence, not that the trace has left the hippocampus.
 
 Late-LTP has two separate times: about 4–8 h until it stabilises, then days or longer of persistence. The slice late-LTP window and the 6 h behavioural window need not coincide, so every comparison must state which one it uses.
@@ -84,13 +84,13 @@ Upscaling is a chain of eight processes. Of these, only facilitation is implemen
 
 | # | Process | Timescale | What it does | Term in the model | Status |
 | --- | --- | --- | --- | --- | --- |
-| U1 | Neurotransmission | ms | Receptor gating carries each synaptic event | AMPA and GABA_A conductances | AMPA and GABA_A run; NMDA planned |
+| U1 | Neurotransmission | AMPA ms; NMDA hundreds of ms | Receptor gating carries each synaptic event | AMPA and GABA_A conductances | AMPA and GABA_A run; NMDA planned |
 | U2 | Facilitation (STP) | 10 ms–1 s | Each spike raises the release fraction u | u in `TMSyn` | Verified |
 | U3 | Ca²⁺/kinase cascades | 1 s–5 min | Decides whether a weight update happens | Lumped into g_Ca(V_seg); no explicit kinase | Planned, S4–S5 |
-| U4 | AMPAR trafficking, early-LTP | 1–30 min, decays over 1–3 h | Adds receptors, independent of protein synthesis, and fades | Carried by the tag T | Planned, S4 |
-| U5 | Synaptic tagging and capture | Set in 1–2 min; τ_tag about 1–4 h | A local tag is captured if PRPs arrive before it decays | T, P, h(P) in `SegTag` | Planned, S4 |
+| U4 | AMPAR trafficking, early-LTP | 1–30 min, decays over 1–3 h | Adds receptors, independent of protein synthesis, and fades | Carried by the tag T in the plan; see limits | Planned, S4 |
+| U5 | Synaptic tagging and capture | Set during induction; tag lasts under 3 h | A local tag is captured if PRPs arrive before it decays | T, P, h(P) in `SegTag` | Planned, S4 |
 | U6 | Transcription, late-LTP | Onset 30–60 min; stable by 4–8 h | The potentiated state stops decaying | w_cap | Planned, S4 |
-| U7 | SWR replay | Ripple 100–300 ms; recurs over hours to days | Repeated events drive capture | Imposed sharp-wave-like input, not emergent | Planned, S4 |
+| U7 | SWR replay | Ripple about 40–100 ms; recurs over hours to days | Repeated events drive capture | Imposed sharp-wave-like input, not emergent | Planned, S4 |
 | U8 | System consolidation | Days to years | Memory stops depending on the hippocampus | None | Out of scope |
 
 **Release level (U2).** At spike n, with u the utilisation and x the available resources:
@@ -131,17 +131,17 @@ Rules such as STDP, BCM or firing-rate homeostasis are a separate level: they sa
 | --- | --- | --- | --- | --- | --- |
 | #1 Vesicle-pool depletion (pre) | 10 ms–10 s | Spike and VGCC Ca²⁺ → readily releasable pool depleted | Frequency-dependent depression | x in `TMSyn` | Verified, in circuit |
 | #2 Presynaptic GPCR inhibition (pre) | 50 ms–min; tonic over hours | A1R, GABA_B, group II/III mGluR → lower P_r | Tonic and neuromodulatory gain | U_eff in `TMSynPI` | A1R verified, not in circuit |
-| #3 SWR-triggered NMDAR depression (post) | Ripple 100 ms; effect lasts hours | NMDAR during SWR → AMPAR weakening (effector unresolved) | Offline depression | Stored weight of non-replayed inputs | Candidate |
+| #3 SWR-triggered NMDAR depression (post) | Ripple about 40–100 ms; effect lasts hours | NMDAR during SWR → AMPAR weakening (effector unresolved) | Offline depression | Stored weight of non-replayed inputs | Candidate |
 | #4a NMDAR → calcineurin/PP1 LTD (post) | Induction s–min; expression hours | Moderate NMDAR Ca²⁺ → GluA1-S845 dephosphorylation, AMPAR endocytosis | Rate-dependent LTD | Low-Ca branch of g_Ca | Candidate |
 | #4b Endocannabinoid → CB1 t-LTD (pre, induced post) | Induction s–min; expression hours | Post mGluR and Ca²⁺ → eCB; pre CB1 and NMDAR → lower P_r | STDP depression | Reduction of U | Open: see limits |
-| #5 PP1 depotentiation (post) | Window 1 min–1 h | LFS, NMDAR Ca²⁺ and A1R → PP1 reverses phosphorylation | Reversal of recent LTP | Active reset of T | Candidate |
+| #5 PP1 depotentiation (post) | Minutes to tens of minutes, by protocol | LFS, NMDAR Ca²⁺ and A1R → PP1 reverses phosphorylation | Reversal of recent LTP | Active reset of T | Candidate |
 | #6 IP3R/calcineurin heterosynaptic depression (post, unstimulated) | Min–hours | Neighbour potentiation, group I mGluR, IP3R Ca²⁺ → inactive spines shrink | Heterosynaptic normalisation | Conservation per segment | Candidate |
 | #7 mGluR5 → local-translation LTD (post) | Min–1 day | Group I mGluR → Arc, STEP, MAP1B translation, AMPAR endocytosis | Protein-synthesis-dependent LTD | Draws on the PRP machinery | Deferred |
-| #8 Constitutive GluA2 endocytosis (post) | τ about 1–4 h | No sensor: absence of capture → inserted AMPARs removed | Decay of unconsolidated LTP | τ_tag | Planned, S4 |
-| #9 PRP competition (post, cell-wide) | 30 min–8 h | No sensor: finite pool, synthesis against degradation | Competition between inputs | Shared capture resource | Not in the equations yet |
+| #8 Constitutive GluA2 endocytosis (post) | Early-LTP under 3 h; also erodes established memory over weeks | No sensor: absence of capture → inserted AMPARs removed | Decay of unconsolidated LTP | τ_tag | Planned, S4 |
+| #9 PRP competition (post; extent of the pool debated) | 30 min–8 h | No sensor: finite pool, synthesis against degradation | Competition between inputs | Shared capture resource | Not in the equations yet |
 | #10 GluN2A/2B threshold shift (post) | 30 min–days | Activity history → subunit ratio changes | BCM sliding threshold | Moves θ_p of g_Ca | Candidate |
 | #11 Homer1a–mGluR5 sleep scaling (post) | Hours, each sleep cycle | Sleep state → Homer1a → GluA1 dephosphorylation, AMPAR removal | SHY | Global step between replay epochs | Deferred |
-| #12 CaMKIV/TNFα synaptic scaling (post; also P_r) | 12 h–days | Somatic Ca²⁺, glial TNFα → multiplicative AMPAR change | Firing-rate homeostasis | Multiplicative factor on weights | Candidate, needs stated compression |
+| #12 CaMKIV/TNFα synaptic scaling (post; also P_r) | Hours to days | Somatic Ca²⁺, glial TNFα → multiplicative AMPAR change | Firing-rate homeostasis | Multiplicative factor on weights | Candidate, needs stated compression |
 | #13 Complement pruning, Rac1/cofilin (whole synapse) | Days–months | C1q/C3 at weak synapses → microglial removal; actin disassembly | Structural forgetting | Removal of uncaptured traces | Deferred |
 
 "Candidate" means proposed for after S4–S6, in this order: #8 and #5, #4a and #10, #6, #3, #12. Nothing in this group is built yet.
@@ -186,13 +186,13 @@ The terms are facilitation, depletion, phasic A1R and tonic A1R. On the three fa
 
 **5. Calcium could set the sign.** With two thresholds, θ_d < Ca < θ_p gives depression (#4a) and Ca > θ_p gives a tag. Recent activity moves θ_p (#10), so history changes the sign of the next change. The current plan has one sigmoid; two thresholds are a candidate extension.
 
-**6. A tag has three possible fates.** It is captured, it decays passively (#8), or low-frequency stimulation resets it within about 10–60 min (#5). A reset tag can no longer capture PRPs, and stabilised late-LTP no longer reverses.
+**6. A tag has three possible fates.** It is captured, it decays passively through AMPAR endocytosis (#8; Dong 2015), or low-frequency stimulation resets it soon after induction (#5). Reported windows run from 3 min or less (Huang 1999) to at least 20 min (Fujii 1991), depending on protocol and preparation. A reset tag can no longer capture PRPs, and stabilised late-LTP no longer reverses.
 
-**7. The PRP pool links synapses across the cell.** A strong input can supply PRPs for a weak input's tag, which is the Frey–Morris design. With limited synthesis, inputs compete (#9), and protein-synthesis-dependent LTD (#7) draws on the same machinery.
+**7. The PRP pool links nearby synapses.** A strong input can supply PRPs for a weak input's tag, which is the Frey–Morris design. The original hypothesis made the pool cell-wide, but later work confines tagging and capture to dendritic compartments or branches (Sajikumar 2007, 2011; Govindarajan 2011). With limited synthesis, inputs compete (#9), and protein-synthesis-dependent LTD (#7) draws on the same machinery. Late-LTP also depends on protein degradation: blocking synthesis and degradation together restores it (Fonseca 2006).
 
-**8. Replay may select as well as store.** The same ripple could capture what is replayed and depress the rest (#3). Sleep (#11) and homeostatic scaling (#12) then lower total weight, and scaling preserves relative weights because it is multiplicative. Synapses that remain weak can be removed (#13). This sequence is a hypothesis.
+**8. Replay may select as well as store.** The same ripple could capture what is replayed and depress the rest (#3). Sleep (#11) and homeostatic scaling (#12) then lower total weight, and scaling preserves relative weights because it is multiplicative. Synapses that remain weak can be removed (#13). Each part has evidence: reactivated firing with ripple input induces LTP in rat slices (Sadowski 2016), and ripples trigger NMDAR-dependent depression in mice (Norimoto 2018). That replay content selects between them, and this whole sequence, is our hypothesis.
 
-**9. Stability needs fast compensation.** Zenke & Gerstner 2017 argue that compensation must be comparable in speed to Hebbian growth, so slow scaling alone cannot stabilise it. The fast candidates are #3, #6 and #10. Inside the STP stage, nothing limits potentiation except depletion and the inhibitory loop.
+**9. Stability needs fast compensation.** Zenke & Gerstner 2017 argue that compensation must be comparable in speed to Hebbian growth, so slow scaling alone cannot stabilise it. Heterosynaptic depression (#6) is the candidate they name. We add #3 and #10 as candidates, though #10 may be too slow. Inside the STP stage, nothing limits potentiation except depletion and the inhibitory loop.
 
 ## What is in NEURON today
 
@@ -223,22 +223,25 @@ The combined scheme makes predictions that can fail. Only the first has been tes
 
 t₅₀, the half-retention time, is compared with the 6 h behavioural window, not fitted to it. The target is a whole-animal measure and the model is one CA1 synapse, so agreement would show consistency, not mechanism.
 
-## Limits and open points
+## Limits and known gaps
 
-The scheme is a hypothesis built largely from secondary and partly unchecked sources, and its equations have known gaps. These are the points where expert input would change the design.
+The scheme is a hypothesis built largely from secondary and partly unchecked sources, and its equations have known gaps. The main known gaps are listed here.
 
-1. **Segment signal.** V_seg is an abstract leaky integral of synaptic input. In a biophysical cell the local membrane voltage already exists. Should the tag read local voltage and NMDAR calcium directly instead?
-2. **Adult t-LTD.** The plan has a ±20 ms STDP window with a depression lobe. Presynaptic t-LTD at mouse CA3→CA1 fades by about the fourth postnatal week, so an adult lobe is not established. If kept, it should reduce U, not the postsynaptic weight.
-3. **No upper bound.** Nothing in the planned equations saturates w_cap, so repeated events can raise it without limit. Which bound is biologically defensible?
-4. **PRP pool.** The model calls the pool cell-wide, but the plan builds one `SegTag` per tagged synapse group, and capture does not consume P. Competition (#9) therefore needs a shared pool with a consumption term.
-5. **Sign of the change.** One sigmoid can only set a tag. Depression needs the two-threshold form, and its thresholds have no CA1 values yet.
-6. **NMDAR timescale.** Our model table lists AMPA and NMDA gating together at 0.5–5 ms, yet credits slow NMDAR deactivation for the ±20 ms window. That range cannot describe NMDAR decay, so the table needs correcting from a primary source.
-7. **Bistratified target.** The plan places BiS input on SR and SO; the circuit currently places it on SR only.
+1. **Segment signal.** V_seg is an abstract leaky integral of synaptic input, although a biophysical cell already has local membrane voltage. The plan does not yet read voltage or NMDAR calcium directly.
+2. **Tag and early-LTP.** The plan carries early-LTP in T. Redondo & Morris 2011 report that the tagged state and LTP expression are dissociable, so they may need separate states.
+3. **One tag only.** Late-LTD is also tagged, and cross-tagging occurs (Sajikumar & Frey 2004). Tag molecules differ by process, with CaMKII for LTP and ERK1/2 for LTD in apical CA1 (Sajikumar 2007).
+4. **PRP trigger.** The plan increments P on somatic bursts, which has no source. Evidence points to strong synaptic input and D1/D5 dopamine signalling (Huang & Kandel 1995; Moncada & Viola 2007).
+5. **PRP pool.** The plan builds one `SegTag` per tagged synapse group, and capture does not consume P. Competition (#9) needs a pool shared within a compartment and a consumption term.
+6. **No upper bound.** Nothing in the planned equations saturates w_cap, so repeated events can raise it without limit. LTP saturation is experimentally real (Moser 1998).
+7. **Captured weight.** The model holds it stable, but GluA2 removal erodes established memories (Migues 2016), and maintenance needs recurring protein synthesis (Bekinschtein 2007).
+8. **Adult t-LTD.** Presynaptic t-LTD at mouse CA3→CA1 is lost in the fourth postnatal week (Pérez-Rodríguez 2019). Adult rat CA1 population data do show depression when post precedes pre by 20 ms (Pang 2019). The plan's ±20 ms depression lobe therefore has no settled adult mechanism. A presynaptic form would reduce U, not the postsynaptic weight.
+9. **Sign of the change.** One sigmoid can only set a tag. Depression needs the two-threshold form, and its thresholds have no CA1 values yet.
+10. **Bistratified target.** The plan places BiS input on SR and SO; the circuit currently places it on SR only.
 
 Other limits on the evidence:
 
 - **Unsourced values:** k_cap, n, τ_P, K, λ and τ_v have no source and will be swept.
-- **Mixed preparations:** cell targets are mouse and STP values are rat; two pathways use cortical values. Pathway #3 comes from mouse, #6's weight conservation from amygdala, and Rac1 forgetting (#13) from *Drosophila*.
+- **Mixed preparations:** cell targets are mouse and STP values are rat; two pathways use cortical values. Pathway #3 comes from mouse, #6's weight conservation from amygdala, Rac1 forgetting (#13) from *Drosophila*, and the GluN2A/2B data (#10) from rat visual cortex. Much LTD and t-LTD data come from juvenile animals.
 - **Timespans:** the spans of the downscaling pathways are order-of-magnitude summaries, not fitted values.
 - **Circuit size:** one PYR with contact-scaled projections cannot show population effects, ripple generation or replay ordering. Replay enters only as imposed input.
 - **Slow pathways:** those running over days need a stated compression factor in any short run, or they stay out.
@@ -247,7 +250,27 @@ Other limits on the evidence:
 
 This document combines `hippocampal_plasticity_model.md` and `hippocampal_downscaling_mechanisms.md`, with `docs/plan.md` and `docs/handoff.md`, from the repository [max-talanov/tinyHippo-bio-plasticity](https://github.com/max-talanov/tinyHippo-bio-plasticity). Numbers from simulations come from its `RESULTS.md`. Full references per pathway are in the downscaling document.
 
-**Details checked against PubMed, PMC or publisher records, not necessarily read in full:**
+On 6 November 2026 all 84 journal references behind this document resolved correctly in PubMed. We compared the main claims with the abstracts, not the full texts, so details inside papers remain unchecked. Ripple duration comes from a [secondary source citing Buzsáki 2015](https://elifesciences.org/reviewed-preprints/106201v1), not from that review itself.
+
+**Added during this check (PubMed abstracts):**
+
+- Bekinschtein et al. 2007, *Neuron* 53:261. [PMID 17224407](https://pubmed.ncbi.nlm.nih.gov/17224407/)
+- Bourtchouladze et al. 1998, *Learn Mem* 5:365. [PMID 10454361](https://pubmed.ncbi.nlm.nih.gov/10454361/)
+- Dong et al. 2015, *J Clin Invest* 125:234. [PMID 25437879](https://pubmed.ncbi.nlm.nih.gov/25437879/)
+- Govindarajan et al. 2011, *Neuron* 69:132. [PMID 21220104](https://pubmed.ncbi.nlm.nih.gov/21220104/)
+- Huang & Kandel 1995, *PNAS* 92:2446. [PMID 7708662](https://pubmed.ncbi.nlm.nih.gov/7708662/)
+- Igaz et al. 2002, *J Neurosci* 22:6781. [PMID 12151558](https://pubmed.ncbi.nlm.nih.gov/12151558/)
+- Lester et al. 1990, *Nature* 346:565. [PMID 1974037](https://pubmed.ncbi.nlm.nih.gov/1974037/)
+- Moncada & Viola 2007, *J Neurosci* 27:7476. [PMID 17626208](https://pubmed.ncbi.nlm.nih.gov/17626208/)
+- Moser et al. 1998, *Science* 281:2038. [PMID 9748165](https://pubmed.ncbi.nlm.nih.gov/9748165/)
+- Nader et al. 2000, *Nat Rev Neurosci* 1:216. [PMID 11257912](https://pubmed.ncbi.nlm.nih.gov/11257912/)
+- Pang et al. 2019, *PNAS* 116:5737. [PMID 30819889](https://pubmed.ncbi.nlm.nih.gov/30819889/)
+- Pérez-Rodríguez et al. 2019, *Cereb Cortex* 29:3266. [PMID 30169759](https://pubmed.ncbi.nlm.nih.gov/30169759/)
+- Sadowski et al. 2016, *Cell Rep* 14:1916. [PMID 26904941](https://pubmed.ncbi.nlm.nih.gov/26904941/)
+- Sajikumar et al. 2007, *J Neurosci* 27:5068. [PMID 17494693](https://pubmed.ncbi.nlm.nih.gov/17494693/)
+- Sajikumar et al. 2011, *PNAS* 108:2551. [PMID 21248226](https://pubmed.ncbi.nlm.nih.gov/21248226/)
+
+**Details checked against PubMed, PMC or publisher records, abstract level at most unless stated:**
 
 - Norimoto et al. 2018, *Science* 359:1524. [doi:10.1126/science.aao0702](https://doi.org/10.1126/science.aao0702) (#3)
 - Miyawaki & Diba 2016, *Curr Biol* 26:893 (#3)
@@ -274,4 +297,4 @@ This document combines `hippocampal_plasticity_model.md` and `hippocampal_downsc
 - Wierenga & Wadman 2003, read only through the Hippocampus Hub data page: SC STP.
 - Mitchell, Lupica & Dunwiddie 1993, *J Neurosci* 13:3439: A1R inhibition.
 
-**Standard citations not yet checked by us:** Frey & Morris 1997; Redondo & Morris 2011; Jahr & Stevens 1990; Lisman 1989; Shouval, Bear & Cooper 2002; Clopath et al. 2010; Clopath et al. 2008; Barrett et al. 2009; Tsodyks & Markram 1997; Zenke & Gerstner 2017. Any parameter taken from these must first be read from the source and recorded with its conditions.
+**Other standard citations, resolved in PubMed, abstract level at most:** Frey & Morris 1997; Redondo & Morris 2011; Jahr & Stevens 1990; Lisman 1989; Shouval, Bear & Cooper 2002; Clopath et al. 2010; Clopath et al. 2008; Barrett et al. 2009; Tsodyks & Markram 1997; Zenke & Gerstner 2017. Any parameter taken from these must first be read from the source and recorded with its conditions.
