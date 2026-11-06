@@ -12,6 +12,7 @@ Usage: python make_fig_up_down.py
 import numpy as np
 
 import analysis as an
+from fig_svg import inline_styles
 import protocols as pr
 from params import PATHWAYS, PRESYN_INHIB
 
@@ -22,13 +23,6 @@ ROWS = (("SC → PYR", "SC_PYR", False), ("SC → PYR, + A1R", "SC_PYR", True),
         ("SC → PV, BiS", "SC_PV", False), ("SC → PV, BiS, + A1R", "SC_PV", True),
         ("PYR → O-LM", "PYR_OLM", False), ("PYR → PV, BiS", "PYR_PV", False),
         ("PV → PYR", "PV_PYR", False), ("BiS → PYR", "BiS_PYR", False), ("O-LM → PYR", "OLM_PYR", False))
-STYLE = """<style>
-.t{font:14px sans-serif;fill:#2C2C2A}.ts{font:12px sans-serif;fill:#5F5E5A}.th{font:500 14px sans-serif;fill:#2C2C2A}
-.box{fill:#F8F7F3;stroke:#B4B2A9}
-.c-teal>rect{fill:#E1F5EE;stroke:#0F6E56}.c-teal>.th{fill:#085041}.c-teal>.ts{fill:#0F6E56}
-.c-pink>rect{fill:#FBEAF0;stroke:#993556}.c-pink>.th{fill:#72243E}.c-pink>.ts{fill:#993556}
-.c-gray>rect{fill:#F1EFE8;stroke:#5F5E5A}.c-gray>.th{fill:#444441}.c-gray>.ts{fill:#5F5E5A}
-</style>"""
 
 
 def marker(mid, col):
@@ -38,9 +32,9 @@ def marker(mid, col):
 
 
 def svg(h, body):
-    return (f'<svg xmlns="http://www.w3.org/2000/svg" width="680" height="{h}" viewBox="0 0 680 {h}">{STYLE}'
-            f'<defs>{marker("ag", UP)}{marker("ap", DEP)}</defs><rect width="680" height="{h}" fill="#FFFFFF"/>'
-            f'{body}</svg>\n')
+    return inline_styles(f'<svg xmlns="http://www.w3.org/2000/svg" width="680" height="{h}" viewBox="0 0 680 {h}">'
+                         f'<defs>{marker("ag", UP)}{marker("ap", DEP)}</defs><rect width="680" height="{h}" fill="#FFFFFF"/>'
+                         f'{body}</svg>\n')
 
 
 def node(cls, x, y, w, title, sub):

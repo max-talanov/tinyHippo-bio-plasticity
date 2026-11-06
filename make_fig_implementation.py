@@ -11,17 +11,10 @@ import inspect
 
 import cells
 import circuit as cc
+from fig_svg import inline_styles
 from params import PATHWAYS
 
 UP, DOWN = "#639922", "#7F77DD"
-STYLE = """<style>
-.ts{font:12px sans-serif;fill:#5F5E5A}.th{font:500 14px sans-serif;fill:#2C2C2A}.tb{font:500 12px sans-serif;fill:#2C2C2A}
-.box{fill:#F8F7F3;stroke:#B4B2A9}
-.c-teal>rect{fill:#E1F5EE;stroke:#0F6E56}.c-teal>.th{fill:#085041}.c-teal>.ts{fill:#0F6E56}
-.c-pink>rect{fill:#FBEAF0;stroke:#993556}.c-pink>.th{fill:#72243E}.c-pink>.ts{fill:#993556}
-.c-gray>rect{fill:#F1EFE8;stroke:#5F5E5A}.c-gray>.th{fill:#444441}.c-gray>.ts{fill:#5F5E5A}
-.badge{fill:#FFFFFF;stroke:#2C2C2A;stroke-width:0.8}
-</style>"""
 W = 1000
 
 
@@ -161,9 +154,9 @@ def main():
 
 
 def write(path, body, hgt):
-    out = (f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{hgt}" viewBox="0 0 {W} {hgt}">{STYLE}'
-           f'<defs>{marker("ag", UP)}{marker("ap", DOWN)}</defs><rect width="{W}" height="{hgt}" fill="#FFFFFF"/>'
-           + "".join(body) + "</svg>\n")
+    out = inline_styles(f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{hgt}" viewBox="0 0 {W} {hgt}">'
+                        f'<defs>{marker("ag", UP)}{marker("ap", DOWN)}</defs><rect width="{W}" height="{hgt}" fill="#FFFFFF"/>'
+                        + "".join(body) + "</svg>\n")
     with open(path, "w") as fh:
         fh.write(out)
     print("wrote", path, W, "x", hgt)
