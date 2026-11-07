@@ -65,11 +65,11 @@ Cell and pathway names match the [status report of November 2026](report_2026-11
 
 ## Timescales
 
-The processes run from milliseconds to years, and they overlap instead of handing off in sequence. Upscaling and downscaling coexist from about 10 ms to months, so no level of the synapse has only one direction.
+The processes run from milliseconds to years, and they overlap instead of handing off in sequence. Upscaling and downscaling coexist from about 10 ms to months, so no level of the synapse has only one direction (Figure 1).
 
 ![All upscaling and downscaling processes on one logarithmic time axis, 8 upscaling (red) and 14 downscaling (blue)](figures/plasticity_timescales_all.png)
 
-Bars are order-of-magnitude summaries of the two source documents, not fitted values. Where a source gives only "hours" or "days", the bar's end is our rounding.
+**Figure 1.** All upscaling and downscaling processes on one logarithmic time axis: 8 upscaling (red) and 14 downscaling (blue). Bars are order-of-magnitude summaries of the two source documents, not fitted values. Where a source gives only "hours" or "days", the bar's end is our rounding.
 
 **Two meanings of "consolidation".** This document always says which one it means.
 
@@ -80,7 +80,9 @@ Late-LTP has two separate times: about 4–8 h until it stabilises, then days or
 
 ## Upscaling: from one spike to a lasting weight
 
-Upscaling is a chain of eight processes. Of these, only facilitation is implemented as plasticity so far. The NEURON model will reach as far as late-LTP, and replay enters only as an imposed input.
+Upscaling is a chain of eight processes (Table 1). Of these, only facilitation is implemented as plasticity so far. The NEURON model will reach as far as late-LTP, and replay enters only as an imposed input.
+
+**Table 1.** The eight upscaling processes, from fastest to slowest, with their terms in the model and their status.
 
 | # | Process | Timescale | What it does | Term in the model | Status |
 | --- | --- | --- | --- | --- | --- |
@@ -96,7 +98,7 @@ Upscaling is a chain of eight processes. Of these, only facilitation is implemen
 **Release level (U2).** At spike n, with u the utilisation and x the available resources:
 
 ```math
-u_n^+ = u_n^- + U(1 - u_n^-), \quad A_n = u_n^+ x_n^-, \quad x_n^+ = x_n^-(1 - u_n^+)
+u_n^+ = u_n^- + U(1 - u_n^-), \quad A_n = u_n^+ x_n^-, \quad x_n^+ = x_n^-(1 - u_n^+) \tag{1}
 ```
 
 Between spikes u decays to 0 with τ_fac and x recovers to 1 with τ_rec. The conductance step is w · A_n.
@@ -104,7 +106,7 @@ Between spikes u decays to 0 with τ_fac and x recovers to 1 with τ_rec. The co
 **Tag amplitude (U3).** One continuous state per dendritic segment leakily integrates its synaptic input. A sigmoid patterned on the NMDAR unblock curve turns it into an induction amplitude, so induction strength is graded rather than all-or-nothing.
 
 ```math
-\tau_v \frac{dV_{seg}}{dt} = -V_{seg} + \sum_i w_i s_i(t), \qquad g_{Ca}(V_{seg}) = \frac{1}{1 + K e^{-\lambda V_{seg}}}
+\tau_v \frac{dV_{seg}}{dt} = -V_{seg} + \sum_i w_i s_i(t), \qquad g_{Ca}(V_{seg}) = \frac{1}{1 + K e^{-\lambda V_{seg}}} \tag{2}
 ```
 
 Here τ_v is 10–30 ms. Because V_seg is shared on a segment, several subthreshold synapses can together reach the steep part of g_Ca. Here K is the sigmoid constant, not the contact count used in the circuit.
@@ -112,20 +114,22 @@ Here τ_v is 10–30 ms. Because V_seg is shared on a segment, several subthresh
 **Tag, PRP pool and capture (U4–U6).** A coincident event with a dendritic spike adds g_Ca(V_seg) to the tag. Somatic bursts add ΔP · s(t) to the PRP pool, where s is the protein-synthesis gate, 0 or 1.
 
 ```math
-\frac{dP}{dt} = -\frac{P}{\tau_P}, \qquad h(P) = \frac{P^n}{P^n + \theta_{PRP}^n}
+\frac{dP}{dt} = -\frac{P}{\tau_P}, \qquad h(P) = \frac{P^n}{P^n + \theta_{PRP}^n} \tag{3}
 ```
 
 ```math
-\frac{dT}{dt} = -\frac{T}{\tau_{tag}} - k_{cap}\, h(P)\, T, \qquad \frac{dw_{cap}}{dt} = k_{cap}\, h(P)\, T
+\frac{dT}{dt} = -\frac{T}{\tau_{tag}} - k_{cap}\, h(P)\, T, \qquad \frac{dw_{cap}}{dt} = k_{cap}\, h(P)\, T \tag{4}
 ```
 
 Capture is gradual by design. The protein-synthesis-sensitive window is therefore an output of the model, not an input. Instantaneous capture is the limit of large k_cap and n, kept for comparison. k_cap, n and τ_P have no source and will be swept, not tuned to give 6 h.
 
 ## Downscaling: fourteen pathways that weaken or bound a synapse
 
-Downscaling is not one process. We list 14 molecular pathways, each described by what senses the trigger and what physically weakens the synapse. Two of them are implemented: depletion in the circuit, and A1R inhibition as a verified mechanism not yet wired in.
+Downscaling is not one process. We list 14 molecular pathways (Table 2), each described by what senses the trigger and what physically weakens the synapse. Two of them are implemented: depletion in the circuit, and A1R inhibition as a verified mechanism not yet wired in.
 
 Rules such as STDP, BCM or firing-rate homeostasis are a separate level: they say which activity pattern changes a weight, not how. One rule can use several pathways, and one pathway can serve several rules. So only sensors and effectors become mechanisms; a rule is what a mechanism must reproduce, which makes it an acceptance test.
+
+**Table 2.** The fourteen downscaling pathways: site, timescale, sensor and effector, rule, term in the model and status.
 
 | Pathway (site) | Timescale | Sensor → effector | Rule | Term in the model | Status |
 | --- | --- | --- | --- | --- | --- |
@@ -146,7 +150,7 @@ Rules such as STDP, BCM or firing-rate homeostasis are a separate level: they sa
 
 "Candidate" means proposed for after S4–S6, in this order: #8 and #5, #4a and #10, #6, #3, #12. Nothing in this group is built yet.
 
-The sections below group the pathways by the model state they act on, in the same order as the combination diagram. Release-level equations are implemented and verified. Equations marked "proposed" are our suggested forms: they are not in the plan, and their parameters have no source yet.
+The sections below group the pathways by the model state they act on, in the same order as Figure 2. Release-level equations are implemented and verified. Equations marked "proposed" are our suggested forms: they are not in the plan, and their parameters have no source yet.
 
 ### Release: less transmitter per spike
 
@@ -155,7 +159,7 @@ These pathways lower release, not the stored weight. The fast ones recover on th
 **#1 Vesicle-pool depletion.** Each release uses part of the readily releasable pool, so later responses in a train shrink until the pool recovers. Single hippocampal release sites have small pools, about 5 quanta on average (Dobrunz & Stevens 1997). The model represents this with x, the available resources. It does not include receptor desensitisation or release-site refractoriness.
 
 ```math
-x_n^+ = x_n^-(1 - u_n^+), \qquad \frac{dx}{dt} = \frac{1 - x}{\tau_{rec}}
+x_n^+ = x_n^-(1 - u_n^+), \qquad \frac{dx}{dt} = \frac{1 - x}{\tau_{rec}} \tag{5}
 ```
 
 τ_rec ranges from 138 to 1250 ms across our pathways, so inhibitory synapses onto PYR recover most slowly.
@@ -163,7 +167,7 @@ x_n^+ = x_n^-(1 - u_n^+), \qquad \frac{dx}{dt} = \frac{1 - x}{\tau_{rec}}
 **#2 Presynaptic GPCR inhibition.** A1R, GABA_B and group II/III mGluRs lower release probability through G-protein inhibition of calcium channels and the release machinery. Adenosine acts in two ways: a tonic level, and a phasic rise released by activity (Mitchell, Lupica & Dunwiddie 1993). `TMSynPI` implements both for A1R:
 
 ```math
-U_{eff} = U\,(1 - i_{tonic})\,(1 - I(t)), \qquad I(t) = i_{max}\left(1 - e^{-D(t)}\right)
+U_{eff} = U\,(1 - i_{tonic})\,(1 - I(t)), \qquad I(t) = i_{max}\left(1 - e^{-D(t)}\right) \tag{6}
 ```
 
 D(t) sums a double-exponential term for each SC volley, after a 50 ms lag. From Mitchell et al. (rat, 34 °C, 2.5 mM Ca, SC fEPSP): i_tonic = 0.15, i_max = 0.40 as a lower bound, and c = 0.315 per volley. The rise and decay constants, 168 and 176 ms, were fitted to that paper's time course. At this drive SC→PYR loses its net upscaling window. For GABA_B we have only a maximum effect, so it does not run.
@@ -171,7 +175,7 @@ D(t) sums a double-exponential term for each SC volley, after a 50 ms lag. From 
 **#4b Endocannabinoid → CB1 t-LTD.** When a postsynaptic spike precedes a presynaptic one, postsynaptic calcium and group I mGluR drive endocannabinoid synthesis. Retrograde CB1 activation, together with presynaptic NMDARs, then lowers release (Sjöström 2003, neocortical layer 5). At mouse CA3→CA1 synapses at P12–P18, this form also needs IP3R calcium release, astrocyte signalling and presynaptic calcineurin (Andrade-Talavera 2016). It is lost in the fourth postnatal week but returns when A1Rs are blocked (Pérez-Rodríguez 2019), which links it to #2. Because expression is presynaptic, the proposed form scales U:
 
 ```math
-U \rightarrow U\,(1 - d_{tLTD}) \quad \text{(proposed)}
+U \rightarrow U\,(1 - d_{tLTD}) \quad \text{(proposed)} \tag{7}
 ```
 
 ### Segment signal: the same calcium can mean depression
@@ -181,22 +185,22 @@ These pathways decide the sign of a change. They do not exist in the current pla
 **#4a NMDAR → calcineurin/PP1 LTD.** Modest, prolonged NMDAR calcium favours phosphatases over kinases. Calcineurin inactivates inhibitor-1, which frees PP1 (Mulkey 1994). GluA1 is then dephosphorylated and AMPARs are removed by endocytosis. In rat CA1, 900 pulses at 1–3 Hz depress responses for over 1 h, while the same pulses at 50 Hz usually potentiate (Dudek & Bear 1992). This LTD is input-specific and needs postsynaptic calcium (Mulkey & Malenka 1992). The site dephosphorylated depends on history: the PKA site in naive synapses, the CaMKII site in potentiated ones (Lee 2000). The calcium-control hypothesis reduces this to two thresholds (Lisman 1989; Shouval 2002):
 
 ```math
-\text{outcome}(Ca) = \begin{cases} \text{no change} & Ca < \theta_d \\ \text{depression} & \theta_d \le Ca < \theta_p \\ \text{tag} & Ca \ge \theta_p \end{cases} \quad \text{(proposed)}
+\text{outcome}(Ca) = \begin{cases} \text{no change} & Ca < \theta_d \\ \text{depression} & \theta_d \le Ca < \theta_p \\ \text{tag} & Ca \ge \theta_p \end{cases} \quad \text{(proposed)} \tag{8}
 ```
 
-This form would replace the single sigmoid g_Ca. It covers rate dependence only; timing-dependent depression is #4b.
+Eq. 8 would replace the single sigmoid g_Ca of Eq. 2. It covers rate dependence only; timing-dependent depression is #4b.
 
 **#10 GluN2A/2B threshold shift.** The LTD/LTP crossover moves with recent activity: high activity raises θ_p and favours depression, and low activity lowers it. BCM is the rule (Bienenstock, Cooper & Munro 1982), and NMDAR subunit composition is one possible substrate. In rat visual cortex, experience reduces NR2B-only receptors and shortens NMDAR currents within hours, while deprivation reverses this over days (Philpot 2001). We have no CA1 source yet. The proposed form adds one slow state per segment, driven by the time-averaged calcium signal:
 
 ```math
-\tau_\theta \frac{d\theta_p}{dt} = \theta_0 + \beta\,\bar{g}_{Ca} - \theta_p \quad \text{(proposed)}
+\tau_\theta \frac{d\theta_p}{dt} = \theta_0 + \beta\,\bar{g}_{Ca} - \theta_p \quad \text{(proposed)} \tag{9}
 ```
 
 ### Tag: losing the label before capture
 
 The tag can be lost in two ways: passively, or by an active reset. The first is built into the plan; the second would give the capture test a second falsification arm.
 
-**#8 Constitutive GluA2 endocytosis.** No sensor is needed. Without capture, AMPAR endocytosis removes the added receptors, and blocking this endocytosis converts decaying LTP into non-decaying LTP (Dong 2015). In the plan this is the decay term −T/τ_tag. The process does not stop at the tag: blocking GluA2 removal with interference peptides prevents forgetting of established memories in rats (Migues 2016). The plan does not include that slower action on captured weight.
+**#8 Constitutive GluA2 endocytosis.** No sensor is needed. Without capture, AMPAR endocytosis removes the added receptors, and blocking this endocytosis converts decaying LTP into non-decaying LTP (Dong 2015). In the plan this is the decay term −T/τ_tag of Eq. 4. The process does not stop at the tag: blocking GluA2 removal with interference peptides prevents forgetting of established memories in rats (Migues 2016). The plan does not include that slower action on captured weight.
 
 **#5 PP1 depotentiation.** Low-frequency stimulation soon after LTP induction reverses it, through NMDARs and protein phosphatases (O'Dell & Kandel 1994). The window depends on protocol and preparation:
 
@@ -207,17 +211,17 @@ The tag can be lost in two ways: passively, or by an active reset. The first is 
 A reset also removes the tag itself: stimulation 5 min after induction prevented any lasting LTP (Sajikumar & Frey 2004). The proposed form is an event on T:
 
 ```math
-T \rightarrow \rho\,T, \quad 0 \le \rho < 1, \quad \text{if LFS arrives within } t_w \text{ of induction} \quad \text{(proposed)}
+T \rightarrow \rho\,T, \quad 0 \le \rho < 1, \quad \text{if LFS arrives within } t_w \text{ of induction} \quad \text{(proposed)} \tag{10}
 ```
 
 ### PRP pool: too little to capture everything
 
 These pathways make capture a limited resource instead of an independent gate at each synapse.
 
-**#9 PRP competition.** Under reduced protein synthesis, new protein-synthesis-dependent LTP on one pathway occurs at the expense of maintaining earlier LTP on another (Fonseca 2004). Synthesis is not the only factor: blocking proteasomal degradation also disrupts late-LTP, and blocking both restores it (Fonseca 2006). The planned equations cannot show competition, because capture never consumes P. The proposed form shares P within a compartment and adds consumption over its tagged groups j:
+**#9 PRP competition.** Under reduced protein synthesis, new protein-synthesis-dependent LTP on one pathway occurs at the expense of maintaining earlier LTP on another (Fonseca 2004). Synthesis is not the only factor: blocking proteasomal degradation also disrupts late-LTP, and blocking both restores it (Fonseca 2006). The planned equations (Eqs. 3 and 4) cannot show competition, because capture never consumes P. The proposed form shares P within a compartment and adds consumption over its tagged groups j:
 
 ```math
-\frac{dP}{dt} = -\frac{P}{\tau_P} - \gamma \sum_j k_{cap}\, h(P)\, T_j \quad \text{(proposed)}
+\frac{dP}{dt} = -\frac{P}{\tau_P} - \gamma \sum_j k_{cap}\, h(P)\, T_j \quad \text{(proposed)} \tag{11}
 ```
 
 **#7 mGluR5 → local-translation LTD.** Group I mGluR activation triggers local protein synthesis in dendrites that changes transmission within minutes (Huber 2000). Rapid Arc translation raises the AMPAR endocytosis rate for a long time, and this LTD needs Arc; NMDAR-LTD does not (Waung 2008). The two LTD forms coexist in juvenile rat CA1 and are mechanistically distinct (Oliet 1997). That paper found reduced event frequency with no change in quantal size for mGluR-LTD, so its expression site is not settled by the abstracts we read. Our link to capture, that it competes for the same translation machinery, is a hypothesis. We propose no equation until the sign of change and the LTD tag are decided.
@@ -229,52 +233,52 @@ These pathways act on the stored weight, mostly offline and over hours or longer
 **#3 SWR-triggered NMDAR depression.** In mice, sharp-wave ripples trigger long-lasting, NMDAR-dependent depression selective for one input pathway. Silencing ripples during slow-wave states prevented the down-regulation of net synaptic weights and impaired new learning (Norimoto 2018). The downstream effector is not resolved. CA1 firing in rats falls 11% per hour across sleep, and spindle and ripple incidence predict the change (Miyawaki & Diba 2016). In mouse cortex, Up states bias plasticity towards depression of inputs that do not drive the cell (González-Rueda 2018). The proposed form applies per ripple to inputs not replayed:
 
 ```math
-w_j \rightarrow w_j\,(1 - \delta_{SWR}), \quad j \notin \text{replayed} \quad \text{(proposed)}
+w_j \rightarrow w_j\,(1 - \delta_{SWR}), \quad j \notin \text{replayed} \quad \text{(proposed)} \tag{12}
 ```
 
 **#6 IP3R/calcineurin heterosynaptic depression.** Potentiating several neighbouring spines on a CA1 dendrite shrinks and weakens nearby unstimulated ones. Blocking calcineurin, IP3Rs or group I mGluRs stops this shrinkage but not the potentiation, which points to an active signal rather than competition for structural resources (Oh 2015). In amygdala intercalated neurons, opposite heterosynaptic changes keep total weight nearly constant (Royer & Paré 2003); we have no such measurement for CA1. The proposed form spreads the potentiation over the N_i inactive synapses of the same segment, once enough neighbours have potentiated:
 
 ```math
-\Delta w_j = -\frac{\beta}{N_i} \sum_{i\ \text{potentiated}} \Delta w_i \quad \text{(proposed)}
+\Delta w_j = -\frac{\beta}{N_i} \sum_{i\ \text{potentiated}} \Delta w_i \quad \text{(proposed)} \tag{13}
 ```
 
 **#11 Homer1a–mGluR5 sleep scaling.** During sleep in mice, synapses lose and dephosphorylate AMPARs, driven by Homer1a and group I mGluR signalling. Noradrenaline and adenosine link this to arousal and sleep need (Diering 2017). In rat cortex and hippocampus, GluA1-containing AMPAR levels are high in wake and low in sleep (Vyazovskiy 2008). In mouse cortex the axon–spine interface shrinks about 18% after sleep in proportion to its size, but large synapses are spared (de Vivo 2017). So the scaling is not uniform. REM sleep in mouse motor cortex both prunes and strengthens new spines (Li 2017). The proposed form is one step per sleep cycle, excluding a spared set:
 
 ```math
-w_j \rightarrow w_j\,(1 - \varepsilon_{sleep}), \quad j \notin \text{spared} \quad \text{(proposed)}
+w_j \rightarrow w_j\,(1 - \varepsilon_{sleep}), \quad j \notin \text{spared} \quad \text{(proposed)} \tag{14}
 ```
 
 **#12 CaMKIV/TNFα synaptic scaling.** Sustained changes in firing scale all of a neuron's excitatory synapses up or down (Turrigiano 1998). Reduced somatic calcium lowers CaMKIV activation and increases transcription (Ibata 2008); glial TNFα and Arc-driven AMPAR endocytosis also contribute (Stellwagen & Malenka 2006; Shepherd 2006). Most of this evidence comes from culture, and much of it is scaling up after silencing. In hippocampal organotypic cultures the response is synapse-specific: CA3→CA1 goes up, and recurrent CA3→CA3 goes down (Kim & Tsien 2008). Local dendritic activity also sets release probability (Branco 2008), so a presynaptic term would scale U. The proposed postsynaptic form, with r the firing rate and r\* its target, is:
 
 ```math
-\tau_s \frac{dw_i}{dt} = w_i\,\frac{r^* - r}{r^*} \quad \text{(proposed)}
+\tau_s \frac{dw_i}{dt} = w_i\,\frac{r^* - r}{r^*} \quad \text{(proposed)} \tag{15}
 ```
 
 **#13 Complement pruning and Rac1/cofilin forgetting.** Over long periods, whole synapses are removed. In adult mouse hippocampus, microglia engulf synaptic components, and depleting microglia or inhibiting complement in engram cells prevents forgetting (Wang 2020). Rac-dependent forgetting was first shown in *Drosophila* (Shuai 2010). Dentate neurogenesis also causes forgetting (Akers 2014), but it lies outside our CA1 circuit. We propose no equation: this pathway ends the life of a trace, far beyond any planned run.
 
 ## How the processes combine
 
-Each process acts on one term of a single chain, so their effects can be located and combined. Release multiplies the stored weight, the tag feeds the stored weight, and the PRP pool gates the transfer.
+Each process acts on one term of a single chain, so their effects can be located and combined (Figure 2). Release multiplies the stored weight, the tag feeds the stored weight, and the PRP pool gates the transfer.
 
 ![The chain of model states, with upscaling (red) and downscaling (blue) processes acting on each](figures/plasticity_combination_chain.png)
 
-Read down the middle for the chain, and across each row for what raises or lowers that state. Only the top state runs in NEURON today.
+**Figure 2.** The chain of model states, with upscaling (red) and downscaling (blue) processes acting on each. Read down the middle for the chain, and across each row for what raises or lowers that state. Only the top state runs in NEURON today.
 
 Written as one expression, the amplitude of spike n is:
 
 ```math
-\Delta g_n = \big[\,w_0 + \alpha\, T(t_n) + w_{cap}(t_n)\,\big] \cdot A_n
+\Delta g_n = \big[\,w_0 + \alpha\, T(t_n) + w_{cap}(t_n)\,\big] \cdot A_n \tag{16}
 ```
 
-This summary is ours. The plan does not yet state it, and α, the scale from tag to early-LTP weight, is undefined there.
+Eq. 16 is our summary. The plan does not yet state it, and α, the scale from tag to early-LTP weight, is undefined there.
 
 **1. Inside release, up and down terms add on a log scale.** We split each release exactly:
 
 ```math
-\log\frac{A_n}{U} = \log\frac{u_n^+}{U_{eff}} + \log x_n^- + \log(1 - I_n) + \log(1 - i_{tonic})
+\log\frac{A_n}{U} = \log\frac{u_n^+}{U_{eff}} + \log x_n^- + \log(1 - I_n) + \log(1 - i_{tonic}) \tag{17}
 ```
 
-The terms are facilitation, depletion, phasic A1R and tonic A1R. On the three facilitating pathways the net effect flips from up to down at a crossover rate f\*: 27.5 Hz for SC→PYR, 22.5 Hz for SC→PV and BiS, and 75.4 Hz for PYR→O-LM. Inhibitory synapses onto PYR are net down at every rate.
+The terms of Eq. 17 are facilitation, depletion, phasic A1R and tonic A1R. On the three facilitating pathways the net effect flips from up to down at a crossover rate f\*: 27.5 Hz for SC→PYR, 22.5 Hz for SC→PV and BiS, and 75.4 Hz for PYR→O-LM. Inhibitory synapses onto PYR are net down at every rate.
 
 **2. The balance differs by pathway, so STP reshapes E/I.** At a steady 20 Hz, the net factors are ×1.15 for SC→PYR, ×2.77 for PYR→O-LM, ×0.25 for PV→PYR, ×0.26 for BiS→PYR and ×0.12 for O-LM→PYR. Adding A1R inhibition turns SC→PYR to ×0.86. These are single-synapse values; the implied tilt towards excitation is a prediction for the circuit, not a result.
 
@@ -282,7 +286,7 @@ The terms are facilitation, depletion, phasic A1R and tonic A1R. On the three fa
 
 **4. Release feeds induction.** S3e will test what the tag reads from STP: per-event u · x and w · u · x. If tag amplitude follows B(f), the steady-state release relative to the first spike, then fast release dynamics decide which rates can set a tag.
 
-**5. Calcium could set the sign.** With two thresholds, θ_d < Ca < θ_p gives depression (#4a) and Ca > θ_p gives a tag. Recent activity moves θ_p (#10), so history changes the sign of the next change. The current plan has one sigmoid; two thresholds are a candidate extension.
+**5. Calcium could set the sign.** With two thresholds (Eq. 8), θ_d < Ca < θ_p gives depression (#4a) and Ca > θ_p gives a tag. Recent activity moves θ_p (#10; Eq. 9), so history changes the sign of the next change. The current plan has one sigmoid; two thresholds are a candidate extension.
 
 **6. A tag has three possible fates.** It is captured, it decays passively through AMPAR endocytosis (#8; Dong 2015), or low-frequency stimulation resets it soon after induction (#5). Reported windows run from 3 min or less (Huang 1999) to at least 20 min (Fujii 1991), depending on protocol and preparation. A reset tag can no longer capture PRPs, and stabilised late-LTP no longer reverses.
 
@@ -294,7 +298,9 @@ The terms are facilitation, depletion, phasic A1R and tonic A1R. On the three fa
 
 ## What is in NEURON today
 
-The release level runs in NEURON; everything slower is still specification. Every mechanism must match an analytic or numpy reference before use, and the two written so far do.
+The release level runs in NEURON; everything slower is still specification (Table 3). Every mechanism must match an analytic or numpy reference before use, and the two written so far do.
+
+**Table 3.** What is in NEURON, by milestone.
 
 | Milestone | Levels covered | Mechanisms | State on 6 November 2026 |
 | --- | --- | --- | --- |
@@ -302,11 +308,13 @@ The release level runs in NEURON; everything slower is still specification. Ever
 | 2. Tag and capture, S4–S6 | Segment signal, tag, PRP pool, captured weight | `SegTag`, NMDA with Mg²⁺ block, STDP step | Not started; none of these is written |
 | After S4–S6 | Slower downscaling, #3 to #13 except #8 | Each a dataclass plus a `build_*` function | Candidates only |
 
-The circuit has two spike generators, four cells and 11 projections, all with Tsodyks–Markram STP. Its only full run used placeholder cells, so it is a pilot and supports no PYR claim. The [status report of November 2026](report_2026-11-06.md) gives the projection table, cell fits and parameter sources.
+The circuit has two spike generators, four cells and 11 projections, all with Tsodyks–Markram STP. Its only full run used placeholder cells, so it is a pilot and supports no PYR claim. The [status report of November 2026](report_2026-11-06.md) gives the projection table (its Table 1), cell fits (its Tables 2 and 3) and parameter sources (its Table 4).
 
 ## What the model predicts, and how each prediction is tested
 
-The combined scheme makes predictions that can fail. Only the first has been tested, and only at the single-synapse level.
+The combined scheme makes predictions that can fail (Table 4). Only the first has been tested, and only at the single-synapse level.
+
+**Table 4.** Predictions of the combined scheme, with their tests and current state.
 
 | Prediction | Test | Stage | State |
 | --- | --- | --- | --- |
@@ -325,15 +333,15 @@ t₅₀, the half-retention time, is compared with the 6 h behavioural window, n
 
 The scheme is a hypothesis built largely from secondary and partly unchecked sources, and its equations have known gaps. The main known gaps are listed here.
 
-1. **Segment signal.** V_seg is an abstract leaky integral of synaptic input, although a biophysical cell already has local membrane voltage. The plan does not yet read voltage or NMDAR calcium directly.
+1. **Segment signal.** V_seg (Eq. 2) is an abstract leaky integral of synaptic input, although a biophysical cell already has local membrane voltage. The plan does not yet read voltage or NMDAR calcium directly.
 2. **Tag and early-LTP.** The plan carries early-LTP in T. Redondo & Morris 2011 report that the tagged state and LTP expression are dissociable, so they may need separate states.
 3. **One tag only.** Late-LTD is also tagged, and cross-tagging occurs (Sajikumar & Frey 2004). Tag molecules differ by process, with CaMKII for LTP and ERK1/2 for LTD in apical CA1 (Sajikumar 2007).
 4. **PRP trigger.** The plan increments P on somatic bursts, which has no source. Evidence points to strong synaptic input and D1/D5 dopamine signalling (Huang & Kandel 1995; Moncada & Viola 2007).
 5. **PRP pool.** The plan builds one `SegTag` per tagged synapse group, and capture does not consume P. Competition (#9) needs a pool shared within a compartment and a consumption term.
-6. **No upper bound.** Nothing in the planned equations saturates w_cap, so repeated events can raise it without limit. LTP saturation is experimentally real (Moser 1998).
+6. **No upper bound.** Nothing in the planned equations saturates w_cap (Eq. 4), so repeated events can raise it without limit. LTP saturation is experimentally real (Moser 1998).
 7. **Captured weight.** The model holds it stable, but GluA2 removal erodes established memories (Migues 2016), and maintenance needs recurring protein synthesis (Bekinschtein 2007).
 8. **Adult t-LTD.** Presynaptic t-LTD at mouse CA3→CA1 is lost in the fourth postnatal week (Pérez-Rodríguez 2019). Adult rat CA1 population data do show depression when post precedes pre by 20 ms (Pang 2019). The plan's ±20 ms depression lobe therefore has no settled adult mechanism. A presynaptic form would reduce U, not the postsynaptic weight.
-9. **Sign of the change.** One sigmoid can only set a tag. Depression needs the two-threshold form, and its thresholds have no CA1 values yet.
+9. **Sign of the change.** One sigmoid can only set a tag. Depression needs the two-threshold form (Eq. 8), and its thresholds have no CA1 values yet.
 10. **Bistratified target.** The plan places BiS input on SR and SO; the circuit currently places it on SR only.
 
 Other limits on the evidence:
