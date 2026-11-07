@@ -73,7 +73,7 @@ def sites():
           '<rect x="40" y="484" width="40" height="16" rx="4" fill="none" stroke="#BA7517" stroke-width="1.2" '
           'stroke-dasharray="4 3"/>',
           '<text class="ts" x="92" y="492" dominant-baseline="central">Presynaptic A1R inhibition of release '
-          '(down #2), SC terminals only</text>',
+          '(D2), SC terminals only</text>',
           '<text class="ts" x="92" y="516" dominant-baseline="central">Upper arrow of each pair: PYR → interneuron; '
           'lower: interneuron → PYR</text>']
     return svg(530, "".join(b))
