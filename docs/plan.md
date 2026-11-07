@@ -103,7 +103,9 @@ PV ──► PYR.soma (GABA_A)    BiS ──► PYR.apical_prox + basal (GABA_A)
      tag/capture models treat the late phase as a variable relaxing over ~1 h or more (Clopath et al.
      2008; Barrett et al. 2009; cited from memory, unverified). The spec's "discrete regime change"
      (model §1, row 6) refers to the end state (captured weight no longer decays), which this keeps.
-   - instantaneous capture (the original design: when `P ≥ θ_PRP` and `T > 0`, `w_cap += κ·T`, `T → 0`)
+   - weight readout (decided 2026-11-07, `docs/handoff.md` decision 13): `Δg_n = [w_0 + α(T + w_cap)] · A_n`. α converts
+     the unitless `T` and `w_cap` into a conductance; it has no source and is swept in S4.
+   - instantaneous capture (the original design: when `P ≥ θ_PRP` and `T > 0`, `w_cap += κ·T`, `T → 0`; `κ = 1` under this readout)
      is the limit `k_cap → ∞`, `n → ∞`. It is kept as a switch for comparison, not as the default.
    - `θ_PRP = 999` disables capture (`h ≈ 0`; the blocked-capture arm of the falsification test).
    - parameters `k_cap` and `n` have no source; they are swept in S4 (no values from memory).

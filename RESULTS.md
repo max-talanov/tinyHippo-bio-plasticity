@@ -612,3 +612,35 @@ synapse, plus A1R inhibition at SC terminals. At 20 Hz only PYR → O-LM stays c
 branches turn net down by about the same amount. Inhibition onto PYR (×0.12–0.26) depresses more than SC excitation
 (×0.86–1.15), so on single-synapse grounds sustained 20 Hz activity tilts PYR input towards excitation. This is a
 prediction to test in the circuit (S3c), not a circuit result.
+
+## §14. S3a correction: B(f) at exact rates, and the A1R windows with and without tonic inhibition
+
+`run_s3a_exact_rates.py` (closed form, no NEURON; deterministic, no seeds, no time compression). Parameters: the
+secondary-source values of §3 and `PRESYN_INHIB["SC_A1R"]` (§11), so the numbers stay provisional.
+
+**What this corrects.** The §5 table is right for the rates it ran, but its columns are the nearest points of a 25-rate
+grid: "5 / 20 / 80 / 200 Hz" are really 5.28, 21.97, 72.08 and 186.51 Hz. The §5 NEURON check of the closed form
+(3.0e-11) is unaffected. The closed form below also matches a recursive 20 Hz train (`analysis.tm_amplitudes`) to 7e-16.
+
+| Pathway | B at 5 / 20 / 80 Hz | max B (at) | f* (Hz) |
+|---|---|---|---|
+| SC → PYR | 1.12 / 1.15 / 0.45 | 1.26 (11.5 Hz) | 27.5 |
+| SC → PV, BiS | 1.25 / 1.07 / 0.36 | 1.34 (8.7 Hz) | 22.6 |
+| PYR → O-LM | 2.84 / 2.77 / 0.95 | 3.33 (9.9 Hz) | 75.4 |
+| PYR → PV, BiS | 0.73 / 0.36 / 0.12 | 0.98 (1 Hz) | none |
+| PV → PYR | 0.59 / 0.25 / 0.08 | 0.92 (1 Hz) | none |
+| BiS → PYR | 0.60 / 0.26 / 0.08 | 0.92 (1 Hz) | none |
+| O-LM → PYR | 0.37 / 0.12 / 0.03 | 0.80 (1 Hz) | none |
+
+At exactly 200 Hz, `R_ss` for SC → PYR is 0.026 at U gains 0.5, 1 and 1.5 (§5 gives 0.028 at 186.51 Hz). `f*` at those
+gains is 66.2, 27.5 and 14.3 Hz.
+
+**A1R windows, steady state** (`c` per spike, which assumes the SC fibres fire together, as in §11):
+
+| Condition | SC → PYR | SC → PV, BiS |
+|---|---|---|
+| phasic only | max B 0.99 (1 Hz), no window | max B 1.07 (9.0 Hz), window up to 16.3 Hz |
+| phasic + tonic 0.15 | max B 0.87 (16.0 Hz), no window | max B 0.97 (10.7 Hz), no window |
+
+The 15.9 Hz in §11 is the phasic-only crossover interpolated on the 19-rate grid of `run_s3a_downscaling.py`. So with the
+sourced tonic and phasic inhibition together, SC → PV also has no net upscaling window, unlike the §11 phasic-only row.

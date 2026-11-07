@@ -9,7 +9,7 @@ Both figures are made by `make_fig_up_down.py`; numbers and caveats are in [RESU
 
 - **Upscaling = facilitation** (Tsodyks–Markram `u`, `mod/TMSyn.mod`): SC → PYR (and the tagged T pathway, same
   parameters), SC → PV and SC → BiS, PYR → O-LM. Vesicle depletion acts on the same synapses, so the net is up only
-  below the crossover f* (27.5, 22.5 and 75.4 Hz; RESULTS §5, §12).
+  below the crossover f* (27.5, 22.6 and 75.4 Hz; RESULTS §5, §12).
 - **Downscaling #1 = vesicle depletion** (`x`): every synapse. On PYR → PV/BiS and on all three interneuron → PYR
   synapses it is the only term.
 - **Downscaling #2 = presynaptic A1R inhibition of release** (`mod/TMSynPI.mod`, tonic + phasic): SC terminals only,

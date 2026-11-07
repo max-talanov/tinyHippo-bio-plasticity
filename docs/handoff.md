@@ -91,6 +91,11 @@ uses Fig. 1 plus its tier table. Fig. 1 now shades the ~6 h protein-synthesis-se
 12. 2026-10-23: S3 is replaced by S3a–S3e (balance map, cell calibration, circuit E/I balance, gain knobs,
     interface to S4) and the S2 criterion uses the sourced classes. Applied in `docs/plan.md`; STP-off in the
     circuit means a static synapse at the pathway's `U`, not `U` → 0.
+13. 2026-11-07: the synaptic weight readout is `Δg_n = [w_0 + α(T + w_cap)] · A_n`. α converts the unitless `T` and
+   `w_cap` into a conductance, so capture does not change the weight when it happens; it only stops that part from
+   decaying. This assumes early-LTP and captured weight have equal strength per unit of `T`, and it sets `κ = 1` in the
+   instantaneous-capture switch. α has no source yet and will be swept in S4. See `docs/plan.md` and
+   `docs/plasticity_up_down_model_2026-11-06.md` Eq. 16.
 Not yet applied (need a decision by the project owner):
 - (resolved 2026-10-22, decisions 8 and 9) gradual capture and S4(d) are in `docs/plan.md`; S4(d) is
   compared with the behavioural ~6 h window. Still open: sources for k_cap, n, τ_P, and a primary source
