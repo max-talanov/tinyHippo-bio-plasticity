@@ -8,6 +8,9 @@ UNVERIFIED ASSUMPTIONS (free scaling factors, reported in every result):
     PC->interneuron value of the same target.
   * contact counts N_*: one PYR stands for a population, so N synapses (each with its own resource pool) carry
     the SC drive and a single pool with weight K * g-hat carries each PYR<->interneuron projection.
+  * Placement with cells="bezaire": SC on the PYR's stratum radiatum (rad_list) and oriens (basal_list) sections and
+    on the PV / bistratified apical dendrites; PV->PYR on the soma, BiS->PYR in radiatum, O-LM->PYR in
+    lacunosum-moleculare (lm_list); section and position by `_place`.
   * NetCon delay 1 ms on PYR<->interneuron projections. AMPA only (no NMDA) in this pilot. tau1/tau2 = 0.5/3 ms
     (AMPA) and 0.5/8 ms (GABA_A) are placeholders.
 """
@@ -16,7 +19,8 @@ from dataclasses import dataclass, field
 import numpy as np
 
 import analysis as an
-from cells import build_interneuron, build_pyr, h
+from cells import (TIER_B_IN, TIER_B_PYR, build_bezaire_interneuron, build_bezaire_pyr, build_interneuron, build_pyr,
+                   h)
 from params import PATHWAYS
 
 E_EXC, E_INH = 0.0, -80.0
@@ -43,6 +47,8 @@ class Config:
     dt: float = 0.025
     seed: int = 0
     stp: bool = True              # False: static synapse, release fraction fixed at the pathway's U (tau_rec ~ 0, tau_fac 0)
+    cells: str = "bezaire"        # "bezaire": cells.TIER_B_PYR / TIER_B_IN at 34 C; "placeholder": the S3 pilot cells
+    settle_ms: float = 20000.0    # bezaire only: rest before t = 0 at dt 10 ms (O-LM HCN tau ~ 2.6 s; RESULTS.md section 8)
 
 
 def _poisson(rng, rate_bg, rate_v, win, t_end):
@@ -58,6 +64,23 @@ def _stp(name, stp_on):
     return (p.U, p.tau_rec, p.tau_fac) if stp_on else (p.U, 1e-3, 0.0)
 
 
+def _place(rng, target):
+    """A segment for one synapse on `target`: a Section, or a list of Sections (a layer of the Bezaire PYR, or a
+    dendritic tree of an interneuron)."""
+    if not isinstance(target, (list, tuple)):
+        return target(float(rng.uniform(0.02, 0.98)))
+    # TODO(human): choose a section of the list and a position x in it; return sec(x). Draw only from `rng`.
+    raise NotImplementedError
+
+
+def _rep(target):
+    """The section recorded for a layer: the target itself, or the middle section of the list."""
+    return target if not isinstance(target, (list, tuple)) else target[len(target) // 2]
+
+
+SETTLE_DT = 10.0
+
+
 def _syn(seg, name, stp_on, e):
     U, D, F = _stp(name, stp_on)
     s = h.TMSyn(seg)
@@ -71,8 +94,16 @@ class TierB:
     def __init__(self, cfg: Config):
         self.cfg = cfg
         self.rng = np.random.default_rng(cfg.seed)
-        self.pyr = build_pyr()
-        self.int = {k: build_interneuron(k) for k in ("pv", "bis", "olm")}
+        if cfg.cells == "bezaire":
+            self.pyr = build_bezaire_pyr(TIER_B_PYR)
+            self.int = {k: build_bezaire_interneuron(k, TIER_B_IN[k]) for k in ("pv", "bis", "olm")}
+            for k in ("pv", "bis"):            # SC targets: the apical trees (apA*, apB*), which reach stratum radiatum
+                self.int[k]["sc"] = [s for n, s in self.int[k]["dend"].items() if n.startswith("ap")]
+        else:
+            self.pyr = build_pyr()
+            self.int = {k: build_interneuron(k) for k in ("pv", "bis", "olm")}
+            for k in ("pv", "bis"):
+                self.int[k]["sc"] = self.int[k]["soma"]
         self.keep = []                     # keep NetCons, synapses, vectors alive
         self.syn = {}                      # pathway -> list of dicts(syn, events (ms), w (uS))
         self.rec = {}
@@ -82,8 +113,7 @@ class TierB:
 
     def _add_poisson_syn(self, name, sec, n, rate, window, e, w_ns):
         for _ in range(n):
-            x = float(self.rng.uniform(0.02, 0.98))
-            syn = _syn(sec(x), name, self.cfg.stp, e)
+            syn = _syn(_place(self.rng, sec), name, self.cfg.stp, e)
             ev = _poisson(self.rng, rate[0], rate[1], window, self.cfg.t_end)
             nc = h.NetCon(None, syn)
             nc.weight[0] = w_ns * 1e-3
@@ -98,14 +128,15 @@ class TierB:
         self._add_poisson_syn("SC_PYR_basal", self.pyr["basal"], c.n_sc_basal,
                               (c.rate_bg, c.rate_volley), win, E_EXC, G_HAT_NS["SC_PYR"])
         for k, name in (("pv", "SC_PV"), ("bis", "SC_BiS")):
-            self._add_poisson_syn(name, self.int[k]["soma"], c.n_sc_int,
+            self._add_poisson_syn(name, self.int[k]["sc"], c.n_sc_int,
                                   (c.rate_bg, c.rate_volley), win, E_EXC, G_HAT_NS[name])
         if c.rate_t > 0:
             self._add_poisson_syn("T_PYR", self.pyr["prox"], c.n_t, (c.rate_t, c.rate_t), win,
                                   E_EXC, G_HAT_NS["T_PYR"])
 
-    def _loop(self, name, pre_sec, post_sec, x, k, e):
-        syn = _syn(post_sec(x), name, self.cfg.stp, e)
+    def _loop(self, name, pre_sec, post, x, k, e):
+        seg = post(x) if not isinstance(post, (list, tuple)) else _place(self.rng, post)
+        syn = _syn(seg, name, self.cfg.stp, e)
         nc = h.NetCon(pre_sec(0.5)._ref_v, syn, sec=pre_sec)
         nc.threshold, nc.delay = 0.0, 1.0
         nc.weight[0] = G_HAT_NS[name] * k * 1e-3
@@ -127,7 +158,7 @@ class TierB:
                           ("pyr_prox", self.pyr["prox"]), ("pyr_dist", self.pyr["dist"]),
                           ("pv", self.int["pv"]["soma"]), ("bis", self.int["bis"]["soma"]),
                           ("olm", self.int["olm"]["soma"])):
-            v = h.Vector(); v.record(sec(0.5)._ref_v, 0.1); self.rec[name] = v
+            v = h.Vector(); v.record(_rep(sec)(0.5)._ref_v, 0.1); self.rec[name] = v
         self.spk = {}
         for name, sec in (("pyr", self.pyr["soma"]), ("pv", self.int["pv"]["soma"]),
                           ("bis", self.int["bis"]["soma"]), ("olm", self.int["olm"]["soma"])):
@@ -154,8 +185,19 @@ class TierB:
                             d["nc"].event(float(ts))
         self._fih = h.FInitializeHandler(1, schedule)
         h.cvode_active(0)
-        h.dt = c.dt
         h.finitialize(-65.0)
+        if c.cells == "bezaire" and c.settle_ms > 0:
+            # rest without input from t = -settle_ms to 0 (all scheduled events are at t >= 0), then restart recording
+            h.t, h.dt = -c.settle_ms, SETTLE_DT
+            while h.t < -1e-9:
+                h.fadvance()
+            self.settle_spikes = {k: len(v) for k, v in self.spk.items()}
+            for v in self.spk.values():
+                v.resize(0)
+            h.t = 0.0
+            h.fcurrent()
+            h.frecord_init()
+        h.dt = c.dt
         while h.t < c.t_end:
             h.fadvance()
         return self

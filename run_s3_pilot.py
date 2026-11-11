@@ -12,7 +12,7 @@ from circuit import Config, TierB, G_HAT_NS
 from params import PATHWAYS
 
 SEEDS = range(5)
-CFG = dict(rate_t=5.0)
+CFG = dict(rate_t=5.0, cells="placeholder")   # RESULTS.md section 4 was run on the placeholder cells
 OUT = "docs/figures/"
 NAMES = ["pyr", "pv", "bis", "olm"]
 WIN = (200.0, 500.0)

@@ -120,6 +120,46 @@ on a segment, several individually subthreshold synapses can jointly drive it in
 captured-weight step continuously, rather than switching synapses between captured and uncaptured. The
 dendritic architecture in which `V_seg` sits is implementation §7.4.
 
+### 2.2 Literature support
+
+Full review: [docs/synaptic_tagging_literature_review.md](docs/synaptic_tagging_literature_review.md),
+based on Martin & Kosik 2002 (*Nat Rev Neurosci* 3:813), Rogerson et al. 2014 (*Nat Rev Neurosci*
+15:157) and Kim & Park 2025 (*BMB Rep* 58:425). All three are reviews, so the values below are
+second-hand and still need checking against the primary slice papers (Frey & Morris 1997, 1998),
+including their recording conditions.
+
+**Mechanism.**
+
+1. A weak input sets a local, protein-synthesis-independent tag (CaMKII, actin) and E-LTP or early
+   LTD.
+2. A strong input, or a weak one paired with dopamine D1/D5, BDNF or carbachol, drives the
+   CaMKII–CaMKIV–CREB pathway and transcription. The resulting PRPs spread across the cell.
+3. A synapse that still holds its tag when PRPs are present converts to L-LTP or late LTD. The order
+   can go either way: weak before strong or strong before weak.
+
+**What this means for the specification above:**
+
+- **`τ_tag`:** §1 row 5 and Fig. 2 use τ_tag ≈ 1–4 h. The reviews give a shorter tag lifetime:
+  - ~1–2 h (Martin & Kosik);
+  - ~1 h in both directions (Rogerson et al.).
+
+  The cell's ability to capture lasts longer: 1–4 h in *Aplysia*, and a weak input up to ~2.5–3 h
+  after the strong one in CA1. The upper end of 1–4 h may therefore describe the PRP availability
+  window, not the tag. Resolve this against Frey & Morris before fixing `τ_tag` in `params.py`.
+- **PRP pool:** §1 row 5 describes a cell-wide pool. The reviews add three limits:
+  - STC is weak between spines >70 µm apart and across branches (Govindarajan et al. 2011).
+  - Nearby spines compete for a limited pool.
+  - A pool per branch with a finite capacity fits better than an unlimited cell-wide pool.
+- **Capture gate:** dopamine D1/D5 is needed for behavioural tagging (Moncada & Viola 2007; Wang et
+  al. 2010). It is a candidate input to the PRP-synthesis threshold.
+- **Replay-driven capture (Fig. 2) is a model hypothesis.** None of the three reviews shows that
+  sharp-wave-ripple replay supplies PRPs or drives capture. Kim & Park do report:
+  - dopamine-gated prioritisation during NREM sleep;
+  - global downscaling during sleep, with reactivated assemblies spared.
+
+  That is consistent with protecting captured synapses from the downscaling in
+  [hippocampal_downscaling_mechanisms.md](hippocampal_downscaling_mechanisms.md).
+
 ## 3. System consolidation
 
 System consolidation (§1, row 8) is a network process between hippocampus and neocortex over days to
