@@ -24,7 +24,7 @@ DN_FILL, DN_EDGE = "#BFD5F2", "#2F73D0"
 plt.rcParams["font.family"] = ["Arial", "DejaVu Sans"]
 
 UPSCALING = [
-    ("U1 Neurotransmission", 0.5 * MS, 0.5 * S),
+    ("U1 Neurotransmission", 0.5 * MS, 5 * MS),
     ("U2 STP", 10 * MS, 1 * S),
     ("U3 Ca²⁺/kinase cascades", 1 * S, 5 * MIN),
     ("U4 AMPAR trafficking, early-LTP", 1 * MIN, 3 * H),
@@ -78,7 +78,7 @@ def timescales(out="docs/figures/plasticity_timescales_all.png"):
     top = 150
     h = int(top + row * (len(UPSCALING) + len(DOWNSCALING) + 1.35) + 60)
     fig, ax = canvas(w, h)
-    text(ax, x_label, 42, "Upscaling and downscaling overlap from 10 ms to months", 25, weight="bold")
+    text(ax, x_label, 42, "Upscaling and downscaling overlap from milliseconds to years", 25, weight="bold")
     y_bottom = h - 58
     ax.plot([513, 1302], [112, 112], color="#B4B2A9", lw=1.5)
     for t, lab in TICKS:
