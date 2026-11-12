@@ -34,6 +34,10 @@ MECHANISMS = sorted([
     ("14", "UPS degradation / turnover",    1 * HR,  3 * WK,  None,     "#4a5a8a"),
 ], key=lambda m: (m[2], m[3], m[0]))
 
+# Upscaling process drawn on top as a time reference, as in figures/timescale_axis.png:
+# neurotransmission (AMPA/NMDA gating), ~0.5-5 ms per hippocampal_plasticity_model.md §1.
+REFERENCE = [("U1", "Neurotransmission (ref.)", 0.5 * MS, 5 * MS, None, "#8a8f99")]
+
 TICKS = [(1 * MS, "1 ms"), (100 * MS, "100 ms"), (1 * S, "1 s"), (1 * MIN, "1 min"),
          (1 * HR, "1 hr"), (1 * DAY, "1 day"), (1 * WK, "1 week"),
          (1 * YR, "1 year"), (10 * YR, "10 yr")]
@@ -46,15 +50,17 @@ def lighten(hex_colour, amount=0.45):
 
 def main(out=Path(__file__).with_name("downscaling_timescale_axis.png")):
     plt.rcParams["font.family"] = "monospace"
-    n = len(MECHANISMS)
-    fig, ax = plt.subplots(figsize=(18, 0.68 * n + 1.6), dpi=100)
+    rows = REFERENCE + MECHANISMS
+    n = len(rows)
+    fig, ax = plt.subplots(figsize=(18, 0.68 * n + 1.9), dpi=100)
     x0, x1 = np.log10(0.6 * MS), np.log10(14 * YR)
     label_x = x0 - 3.6
 
     grid = np.arange(-3, np.log10(10 * YR) + 0.01, 0.5)
     ax.vlines(grid, 0.15, n + 0.7, color="#dddddd", lw=1.2, zorder=0)
 
-    for i, (mid, label, a, b, tail, colour) in enumerate(MECHANISMS):
+    ax.hlines(n - len(REFERENCE) + 0.5, label_x, x1, color="#bbbbbb", lw=1, ls=(0, (4, 4)))
+    for i, (mid, label, a, b, tail, colour) in enumerate(rows):
         y = n - i
         ax.plot([np.log10(a), np.log10(b)], [y, y], color=colour, lw=19,
                 solid_capstyle="round", zorder=3)
@@ -75,9 +81,12 @@ def main(out=Path(__file__).with_name("downscaling_timescale_axis.png")):
     ax.text(label_x + 0.6, -1.2, "dotted = recurring / extended tail "
             "(repeated sleep cycles, slow structural follow-through)",
             fontsize=13, color="#555a66", va="center")
+    ax.text(label_x + 0.6, -1.75, "grey, above the dashed line = U1 neurotransmission, "
+            "an upscaling process shown as a time reference",
+            fontsize=13, color="#555a66", va="center")
 
     ax.set_xlim(label_x - 0.1, x1)
-    ax.set_ylim(-1.6, n + 0.8)
+    ax.set_ylim(-2.1, n + 0.8)
     ax.axis("off")
     fig.tight_layout()
     fig.savefig(out, facecolor="white")

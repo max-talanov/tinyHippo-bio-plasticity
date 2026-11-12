@@ -26,11 +26,12 @@ Only the sensor and effector levels should be modelled as mechanisms (a dataclas
 function, per `CLAUDE.md`). The rule is what a mechanism should *reproduce* when driven with the
 corresponding protocol. It is an acceptance test, not a component.
 
-![Fifteen molecular downscaling pathways on the same logarithmic time axis as Fig. 1 of the model document, from 1 ms to 10 years, ordered by onset so the bars form a descending staircase. Vesicle depletion, presynaptic GPCR inhibition and SWR-triggered NMDAR depression start in the millisecond range; NMDAR/phosphatase LTD, endocannabinoid t-LTD, depotentiation, heterosynaptic and tag-related depression start at seconds to minutes; BCM metaplasticity, sleep renormalization and synaptic scaling start at tens of minutes to hours; protein turnover runs from hours (activity-driven degradation) to weeks (basal turnover); pruning and active forgetting start at days and extend to a year.](figures/downscaling_timescale_axis.png)
+![Neurotransmission as a grey reference row, then fifteen molecular downscaling pathways on the same logarithmic time axis as Fig. 1 of the model document, from 1 ms to 10 years, ordered by onset so the bars form a descending staircase. Vesicle depletion, presynaptic GPCR inhibition and SWR-triggered NMDAR depression start in the millisecond range; NMDAR/phosphatase LTD, endocannabinoid t-LTD, depotentiation, heterosynaptic and tag-related depression start at seconds to minutes; BCM metaplasticity, sleep renormalization and synaptic scaling start at tens of minutes to hours; protein turnover runs from hours (activity-driven degradation) to weeks (basal turnover); pruning and active forgetting start at days and extend to a year.](figures/downscaling_timescale_axis.png)
 
 *Fig. D1. Downscaling mechanisms on the log time axis of model Fig. 1, ordered
 by onset (ties broken by end), as in Fig. 1. A bar's position marks onset and its
-length marks characteristic duration. Dotted tails
+length marks characteristic duration. The grey top row, U1 neurotransmission (~0.5–5 ms), is an upscaling
+process shown only as a time reference, as in the model document's timescale figure. Dotted tails
 are recurring or extended effects. Spans are order-of-magnitude summaries of the
 references below, not fitted values. Regenerate with
 `python3 figures/make_downscaling_timescale_axis.py`.*
