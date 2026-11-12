@@ -41,8 +41,8 @@ event, and one is system consolidation.
 
 *Fig. 1 — The eight plasticity and memory processes on one log time axis, one hot colour per process.
 Spans and tails are shared with the other timescale figures (`plasticity_timescales.py`, from Table 1 of
-`docs/plasticity_up_down_model_2026-11-06.md`), so they can differ slightly from the rounded constants in the
-table below; the dotted tail on row 1 is NMDA deactivation (hundreds of ms). Brackets mark the
+`docs/plasticity_up_down_model_2026-11-06.md`), and match the table below up to rounding;
+the dotted tail on row 1 is NMDA deactivation (hundreds of ms). Brackets mark the
 hypothesised synaptic correlate of cellular consolidation (rows 5–6) and system consolidation (row 8).
 Row 6's solid bar is the stabilization time; its dotted tail is persistence. The shaded band is the
 behavioural protein-synthesis-sensitive window (~6 h after learning; unverified), drawn on the same
@@ -56,10 +56,13 @@ factors) is in the companion [Consolidation Cascade](https://claude.ai/code/arti
 | 2 | Short-term plasticity | ~10 ms–1 s | Signalling (not consolidation) | Every synapse | NMDAR's slower deactivation is *why* a ±20 ms coincidence window exists — a biophysical constant, not a modeling convenience. |
 | 3 | Ca²⁺/kinase cascades | ~1 s–5 min | Induction (not consolidation) | Synapse / dendritic segment | The weight-update decision is made on this timescale. |
 | 4 | AMPAR trafficking / early-LTP | ~1–30 min, decays over 1–3 h | Early phase: protein-synthesis-independent, decays | Synapse | A decaying analog state, carried by the tag (§2). |
-| 5 | Synaptic tagging & capture | tag set in 1–2 min, decays τ ≈ 1–4 h | Cellular consolidation (synaptic correlate, hypothesised) | Synapse; PRP pool cell-wide | A local, transient, decaying signal that is either captured or lost (§2). |
+| 5 | Synaptic tagging & capture | tag set in 1–2 min, lasts under 3 h | Cellular consolidation (synaptic correlate, hypothesised) | Synapse; PRP pool cell-wide | A local, transient, decaying signal that is either captured or lost (§2). |
 | 6 | Transcription / late-LTP | onset ~30–60 min; **stabilized by ~4–8 h** | Cellular consolidation (synaptic correlate, hypothesised) | Synapse / cell, in any region that stores the memory | Once captured, the state stops decaying — a discrete regime change, not a continuous process. |
-| 7 | Sharp-wave-ripple (SWR) replay | ripple 100–300 ms, recurs over hours–days | Network event (not itself consolidation) | Hippocampal network | Replay within hours of learning can drive capture (cellular consolidation, §2); replay over days is the proposed driver of system consolidation (§3). |
+| 7 | Sharp-wave-ripple (SWR) replay | ripple about 40–100 ms¹, recurs over hours–days | Network event (not itself consolidation) | Hippocampal network | Replay within hours of learning can drive capture (cellular consolidation, §2); replay over days is the proposed driver of system consolidation (§3). |
 | 8 | System consolidation | days–weeks (rodent) to months–years (human) | System consolidation | Hippocampus ↔ neocortex | Gradual loss of the memory's dependence on the hippocampus (§3). |
+
+¹ Ripple duration from a [secondary source citing Buzsáki 2015](https://elifesciences.org/reviewed-preprints/106201v1),
+not from that review itself (unverified). This document previously gave 100–300 ms.
 
 **Stabilization time versus persistence (row 6).** Two different quantities are attached to late-LTP
 and must not be merged:
@@ -86,7 +89,7 @@ synthesis is the model's analogue of a protein-synthesis inhibitor.
 
 *Fig. 2 — The tag-decay/capture dynamic, and the falsification test it implies. Both traces receive
 identical STDP-driven jumps per event (replay quality is unaffected either way); they diverge only in
-whether the tag gets captured before it decays. Because the tag decays with τ_tag ≈ 1–4 h, the
+whether the tag gets captured before it decays. Because the tag lasts under 3 h, the
 staircase can build only if the events fall within hours of each other: Fig. 2 shows cellular
 consolidation driven by replay, not system consolidation.*
 
@@ -142,12 +145,14 @@ including their recording conditions.
 
 **What this means for the specification above:**
 
-- **`τ_tag`:** §1 row 5 and Fig. 2 use τ_tag ≈ 1–4 h. The reviews give a shorter tag lifetime:
+- **`τ_tag`:** §1 row 5 and Fig. 2 now give a tag lifetime under 3 h, as in Table 1 of
+  [`docs/plasticity_up_down_model_2026-11-06.md`](docs/plasticity_up_down_model_2026-11-06.md); they
+  previously used τ_tag ≈ 1–4 h. The reviews give a shorter tag lifetime still:
   - ~1–2 h (Martin & Kosik);
   - ~1 h in both directions (Rogerson et al.).
 
   The cell's ability to capture lasts longer: 1–4 h in *Aplysia*, and a weak input up to ~2.5–3 h
-  after the strong one in CA1. The upper end of 1–4 h may therefore describe the PRP availability
+  after the strong one in CA1. The old upper end of 4 h may therefore describe the PRP availability
   window, not the tag. Resolve this against Frey & Morris before fixing `τ_tag` in `params.py`.
 - **PRP pool:** §1 row 5 describes a cell-wide pool. The reviews add three limits:
   - STC is weak between spines >70 µm apart and across branches (Govindarajan et al. 2011).
