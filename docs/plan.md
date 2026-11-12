@@ -111,7 +111,7 @@ PV ──► PYR.soma (GABA_A)    BiS ──► PYR.apical_prox + basal (GABA_A)
    - parameters `k_cap` and `n` have no source; they are swept in S4 (no values from memory).
 3. **STDP in the tag step:** ±20 ms window (A₊, A₋).
 
-Time scales: the slow module runs in **real units** (τ_tag 1–4 h). With gradual capture the
+Time scales: the slow module runs in **real units** (τ_tag under 3 h; see hippocampal_plasticity_model.md §1). With gradual capture the
 slow ODEs between events are no longer linear decays (`h(P)·T` couples them), but they are smooth
 and slow, so CVODE should take long steps; hours of simulated time should still be cheap. This is a
 risk to check in S4; the fallback is a numpy reference of the slow subsystem (also required by
