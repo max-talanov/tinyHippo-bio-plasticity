@@ -26,7 +26,7 @@ Only the sensor and effector levels should be modelled as mechanisms (a dataclas
 function, per `CLAUDE.md`). The rule is what a mechanism should *reproduce* when driven with the
 corresponding protocol. It is an acceptance test, not a component.
 
-![Fourteen molecular downscaling pathways on the same logarithmic time axis as Fig. 1 of the model document, from 1 ms to 10 years, ordered by onset so the bars form a descending staircase. Vesicle depletion, presynaptic GPCR inhibition and SWR-triggered NMDAR depression start in the millisecond range; NMDAR/phosphatase LTD, endocannabinoid t-LTD, depotentiation, heterosynaptic and tag-related depression start at seconds to minutes; BCM metaplasticity, sleep renormalization and synaptic scaling start at tens of minutes to hours; pruning and active forgetting start at days and extend to a year.](figures/downscaling_timescale_axis.png)
+![Fifteen molecular downscaling pathways on the same logarithmic time axis as Fig. 1 of the model document, from 1 ms to 10 years, ordered by onset so the bars form a descending staircase. Vesicle depletion, presynaptic GPCR inhibition and SWR-triggered NMDAR depression start in the millisecond range; NMDAR/phosphatase LTD, endocannabinoid t-LTD, depotentiation, heterosynaptic and tag-related depression start at seconds to minutes; BCM metaplasticity, sleep renormalization and synaptic scaling start at tens of minutes to hours; protein turnover runs from hours (activity-driven degradation) to weeks (basal turnover); pruning and active forgetting start at days and extend to a year.](figures/downscaling_timescale_axis.png)
 
 *Fig. D1. Downscaling mechanisms on the log time axis of model Fig. 1, ordered
 by onset (ties broken by end), as in Fig. 1. A bar's position marks onset and its
@@ -40,7 +40,8 @@ bibliographic details of Norimoto 2018, González-Rueda 2018, Oh 2015, Kim & Tsi
 2008, Fonseca 2004, Royer & Paré 2003, Branco 2008, Migues 2016, Wang 2020,
 Li 2017, Sajikumar & Frey 2004 and Miyawaki & Diba 2016 have been checked against
 PubMed/PMC or publisher records (DOIs given), as have Sjöström 2003, Andrade-Talavera 2016,
-Huang 1999, Lee 2000 and Ibata 2008. The rest are standard citations that
+Huang 1999, Lee 2000 and Ibata 2008, and for #14 Crick 1984, Ehlers 2003, Colledge 2003,
+Hou 2006, Dörrbaum 2018 and Heo 2018. The rest are standard citations that
 have not been checked. Per `CLAUDE.md`, a parameter taken from any of these must
 be checked against the source and recorded in `params.py` with its recording
 conditions before use.
@@ -63,6 +64,7 @@ conditions before use.
 | 11 | Homer1a–mGluR5 sleep scaling-down | hours, each sleep cycle | sleep state: falling noradrenaline, rising adenosine → Homer1a | ligand-independent mGluR5 signalling → GluA1 dephosphorylation, AMPAR removal | post | SHY (wake potentiation, sleep renormalization) | global downscaling between replay epochs |
 | 12 | CaMKIV/TNFα synaptic scaling | 12 hr–days | somatic Ca²⁺ → CaMKIV → transcription; glial TNFα | multiplicative change in synaptic AMPARs (Arc-dependent endocytosis) | post (and pre: P_r) | firing-rate homeostasis | implementation §7.2 weight decay |
 | 13 | Complement/microglial pruning; Rac1/cofilin forgetting | days–months | C1q/C3 deposition at weak synapses | microglial CR3 phagocytosis; actin disassembly | whole synapse | structural forgetting | removal of uncaptured traces |
+| 14 | Ubiquitin–proteasome degradation and protein turnover | hours (activity-driven) to days–weeks (basal) | NMDAR Ca²⁺ or sustained activity → E3 ligases (e.g. Mdm2); basal turnover has no sensor | proteasomal degradation of PSD proteins (PSD-95, scaffolds); replacement of the proteins holding a stored weight | post (and the PRP pool) | homeostatic PSD remodelling; contribution to LTD; loss of unmaintained weight | turnover and maintenance of `w_cap`; degraded constraint on capture |
 
 ---
 
@@ -404,6 +406,46 @@ model §3. Neurogenesis acts in DG, outside the minimal CA1 circuit.
 - Davis RL, Zhong Y (2017). The biology of forgetting: a perspective. *Neuron* 95:490–503.
 - Akers KG, Martinez-Canabal A, Restivo L, et al. (2014). Hippocampal neurogenesis regulates forgetting during adulthood and infancy. *Science* 344:598–602.
 
+## 14. Ubiquitin–proteasome degradation and protein turnover
+
+**Pathway.** Two parts. *Basal turnover* has no sensor: the proteins that hold a stored weight
+are degraded and replaced over days to weeks. *Activity-driven degradation*: NMDAR Ca²⁺ or
+sustained activity → E3 ubiquitin ligases (e.g. Mdm2) → ubiquitination of postsynaptic density
+proteins → proteasomal degradation → fewer synaptic AMPAR slots (postsynaptic). **Rule:**
+homeostatic remodelling of the PSD, a contribution to LTD, and loss of any weight that is not
+actively maintained.
+
+**Mechanism.** In rat hippocampal cultures, protein half-lives range from under a day to more
+than 20 days. In mouse synapses, a set of long-lived proteins persists for weeks or longer, and
+synaptic proteins turn over more slowly than cytosolic ones. A memory therefore outlives its
+molecules only if something rebuilds it (Crick's turnover problem). The candidate answers are a
+self-maintaining kinase switch or recurring protein synthesis. Activity changes the composition
+of the PSD in both directions through the ubiquitin–proteasome system. NMDAR activation leads
+Mdm2 to ubiquitinate PSD-95, which is then degraded. Blocking this prevents NMDA-induced AMPAR
+endocytosis and reduces LTD. Later work conflicts: proteasome inhibition was reported to leave
+NMDAR-LTD unchanged and to enhance mGluR-LTD (Citri et al. 2009). Proteasomal degradation of
+FMRP was reported to be needed for mGluR-LTD (Hou et al. 2006). Degradation is also needed for
+late-LTP: blocking it disrupts late-LTP, and blocking synthesis as well restores it (Fonseca et
+al. 2006, under #9).
+
+**Spec hook.** Captured weight `w_cap`, which the model currently holds stable. Turnover adds a
+decay term with time constant τ_turn (days), and maintenance can be added as a synthesis-gated
+bistable term. On the PRP side, a synthesised constraint that the proteasome degrades would
+reproduce Fonseca et al. 2006. Equations 16–17 of
+[`docs/plasticity_up_down_model_2026-11-06.md`](docs/plasticity_up_down_model_2026-11-06.md)
+give the proposed forms. A τ_turn of days needs a stated compression factor in any short run.
+
+**References.**
+- Crick F (1984). Memory and molecular turnover. *Nature* 312:101. (News and Views)
+- Lisman JE (1985). A mechanism for memory storage insensitive to molecular turnover: a bistable autophosphorylating kinase. *PNAS* 82:3055–3057. doi:10.1073/pnas.82.9.3055
+- Miller P, Zhabotinsky AM, Lisman JE, Wang XJ (2005). The stability of a stochastic CaMKII switch: dependence on the number of enzyme molecules and protein turnover. *PLoS Biol* 3:e107. doi:10.1371/journal.pbio.0030107
+- Ehlers MD (2003). Activity level controls postsynaptic composition and signaling via the ubiquitin-proteasome system. *Nat Neurosci* 6:231–242. (cultured rat hippocampal neurons)
+- Colledge M, Snyder EM, Crozier RA, et al. (2003). Ubiquitination regulates PSD-95 degradation and AMPA receptor surface expression. *Neuron* 40:595–607.
+- Hou L, Antion MD, Hu D, et al. (2006). Dynamic translational and proteasomal regulation of fragile X mental retardation protein controls mGluR-dependent long-term depression. *Neuron* 51:441–454. (proteasome claim checked only through a secondary excerpt)
+- Citri A, Soler-Llavina G, Bhattacharyya S, Malenka RC (2009). N-methyl-D-aspartate receptor- and metabotropic glutamate receptor-dependent long-term depression are differentially regulated by the ubiquitin-proteasome system. *Eur J Neurosci*. (not yet checked)
+- Dörrbaum AR, Kochen L, Langer JD, Schuman EM (2018). Local and global influences on protein turnover in neurons and glia. *eLife* 7:e34202. doi:10.7554/eLife.34202 (rat hippocampal cultures)
+- Heo S, Diering GH, Na CH, et al. (2018). Identification of long-lived synaptic proteins by proteomic analysis of synaptosome protein turnover. *PNAS* 115:E3827–E3836. doi:10.1073/pnas.1720956115 (mouse)
+
 ---
 
 ## Computational references
@@ -432,5 +474,7 @@ Hebbian growth. Fast candidates are #3, #6 and #10.
 4. **#3.** SWR-gated depression of non-replayed synapses. Needs ripple-epoch input,
    and any timescale compression factor must be stated.
 5. **#12.** Multiplicative scaling, only with a stated compression factor.
+6. **#14.** Turnover of `w_cap` with an optional maintenance switch. It decides how long a
+   captured weight lasts, so its compression factor must be stated.
 
 <!-- test text: push check -->

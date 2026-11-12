@@ -29,10 +29,12 @@ Cell and pathway names match the [status report of November 2026](report_2026-11
 | CA1, CA3 | Cornu Ammonis areas 1 and 3 |
 | CaMKII, CaMKIV | Ca²⁺/calmodulin-dependent protein kinases II and IV |
 | CB1 | Cannabinoid receptor type 1 |
-| D1–D13 | Downscaling pathways, numbered as in Table 2; D4 has parts a and b |
+| D1–D14 | Downscaling pathways, numbered as in Table 2; D4 has parts a and b |
+| E3 | Ubiquitin ligase, the enzyme that attaches ubiquitin to a target protein |
 | eCB | Endocannabinoid |
 | E-LTP, L-LTP | Early and late long-term potentiation |
 | E/I | Excitation/inhibition |
+| FMRP | Fragile X messenger ribonucleoprotein |
 | GABA_A, GABA_B | γ-aminobutyric acid receptors, types A and B |
 | GluA1, GluA2 | AMPA receptor subunits |
 | GluN2A, GluN2B | NMDA receptor subunits |
@@ -49,6 +51,7 @@ Cell and pathway names match the [status report of November 2026](report_2026-11
 | PKA | Protein kinase A |
 | PP1 | Protein phosphatase 1 |
 | PRP | Plasticity-related protein |
+| PSD, PSD-95 | Postsynaptic density; its scaffold protein of 95 kDa |
 | PV | Parvalbumin-positive basket interneuron |
 | PYR | CA1 pyramidal cell |
 | S0–S7 | Project stages in the plan |
@@ -63,6 +66,7 @@ Cell and pathway names match the [status report of November 2026](report_2026-11
 | TM | Tsodyks–Markram synapse model |
 | TNFα | Tumour necrosis factor alpha |
 | U1–U8 | Upscaling processes, numbered as in Table 1 |
+| UPS | Ubiquitin–proteasome system |
 | VGCC | Voltage-gated calcium channel |
 
 ## Timescales
@@ -71,7 +75,7 @@ The processes run from milliseconds to years, and they overlap instead of handin
 
 ![All upscaling and downscaling processes on one logarithmic time axis, 8 upscaling (red) and 14 downscaling (blue)](figures/plasticity_timescales_all.png)
 
-**Figure 1.** All upscaling and downscaling processes on one logarithmic time axis: 8 upscaling (red) and 14 downscaling (blue). Bars are order-of-magnitude summaries of the two source documents, not fitted values. Where a source gives only "hours" or "days", the bar's end is our rounding.
+**Figure 1.** All upscaling and downscaling processes on one logarithmic time axis: 8 upscaling (red) and 14 downscaling (blue). D14 (protein turnover) was added after this figure was drawn and is not shown. Bars are order-of-magnitude summaries of the two source documents, not fitted values. Where a source gives only "hours" or "days", the bar's end is our rounding.
 
 **Two meanings of "consolidation".** This document always says which one it means.
 
@@ -125,13 +129,13 @@ Here τ_v is 10–30 ms. Because V_seg is shared on a segment, several subthresh
 
 Capture is gradual by design. The protein-synthesis-sensitive window is therefore an output of the model, not an input. Instantaneous capture is the limit of large k_cap and n_H, kept for comparison. Here n_H is the Hill exponent, written n in the plan. k_cap, n_H and τ_P have no source and will be swept, not tuned to give 6 h.
 
-## Downscaling: fourteen pathways that weaken or bound a synapse
+## Downscaling: fifteen pathways that weaken or bound a synapse
 
-Downscaling is not one process. We list 14 molecular pathways (Table 2), each described by what senses the trigger and what physically weakens the synapse. Two of them are implemented: depletion in the circuit, and A1R inhibition as a verified mechanism not yet wired in.
+Downscaling is not one process. We list 15 molecular pathways (Table 2), each described by what senses the trigger and what physically weakens the synapse. Two of them are implemented: depletion in the circuit, and A1R inhibition as a verified mechanism not yet wired in.
 
 Rules such as STDP, BCM or firing-rate homeostasis are a separate level: they say which activity pattern changes a weight, not how. One rule can use several pathways, and one pathway can serve several rules. So only sensors and effectors become mechanisms; a rule is what a mechanism must reproduce, which makes it an acceptance test.
 
-**Table 2.** The fourteen downscaling pathways: site, timescale, sensor and effector, rule, term in the model and status.
+**Table 2.** The fifteen downscaling pathways: site, timescale, sensor and effector, rule, term in the model and status.
 
 | Pathway (site) | Timescale | Sensor → effector | Rule | Term in the model | Status |
 | --- | --- | --- | --- | --- | --- |
@@ -149,6 +153,7 @@ Rules such as STDP, BCM or firing-rate homeostasis are a separate level: they sa
 | D11 Homer1a–mGluR5 sleep scaling (post) | Hours, each sleep cycle | Sleep state → Homer1a → GluA1 dephosphorylation, AMPAR removal | SHY | Global step between replay epochs | Deferred |
 | D12 CaMKIV/TNFα synaptic scaling (post; also P_r) | Hours to days | Somatic Ca²⁺, glial TNFα → multiplicative AMPAR change | Firing-rate homeostasis | Multiplicative factor on weights | Candidate, needs stated compression |
 | D13 Complement pruning, Rac1/cofilin (whole synapse) | Days–months | C1q/C3 at weak synapses → microglial removal; actin disassembly | Structural forgetting | Removal of uncaptured traces | Deferred |
+| D14 Ubiquitin–proteasome degradation and protein turnover (post; also the PRP pool) | Hours (activity-driven) to days–weeks (basal turnover) | NMDAR Ca²⁺ or sustained activity → E3 ligases (e.g. Mdm2) ubiquitinate PSD proteins → proteasome; basal turnover has no sensor | Homeostatic PSD remodelling; contribution to LTD; loss of unmaintained weight | Turnover and maintenance of w_cap; degraded constraint on capture | Candidate; LTD evidence conflicting |
 
 "Candidate" means proposed for after S4–S6, in this order: D8 and D5, D4a and D10, D6, D3, D12. Nothing in this group is built yet.
 
@@ -230,7 +235,7 @@ These pathways make capture a limited resource instead of an independent gate at
 
 ### Stored weight: lowering or removing what was kept
 
-These pathways act on the stored weight, mostly offline and over hours or longer. All of them are outside the current plan, and the slower ones would need a stated compression factor in any short run. In Eqs. 12–15, w is the stored weight of one synapse, w_0 + α · w_cap in Eq. 16. How a change divides between those two terms is not specified yet.
+These pathways act on the stored weight, mostly offline and over hours or longer. All of them are outside the current plan, and the slower ones would need a stated compression factor in any short run. In Eqs. 12–15, w is the stored weight of one synapse, w_0 + α · w_cap in Eq. 18. How a change divides between those two terms is not specified yet.
 
 **D3 SWR-triggered NMDAR depression.** In mice, sharp-wave ripples trigger long-lasting, NMDAR-dependent depression selective for one input pathway. Silencing ripples during slow-wave states prevented the down-regulation of net synaptic weights and impaired new learning (Norimoto 2018). The downstream effector is not resolved. CA1 firing in rats falls 11% per hour across sleep, and spindle and ripple incidence predict the change (Miyawaki & Diba 2016). In mouse cortex, Up states bias plasticity towards depression of inputs that do not drive the cell (González-Rueda 2018). The proposed form applies per ripple to inputs not replayed:
 
@@ -258,29 +263,51 @@ w_j \rightarrow w_j\,(1 - \varepsilon_{sleep}), \quad j \notin \text{spared} \qu
 
 **D13 Complement pruning and Rac1/cofilin forgetting.** Over long periods, whole synapses are removed. In adult mouse hippocampus, microglia engulf synaptic components, and depleting microglia or inhibiting complement in engram cells prevents forgetting (Wang 2020). Rac-dependent forgetting was first shown in *Drosophila* (Shuai 2010). Dentate neurogenesis also causes forgetting (Akers 2014), but it lies outside our CA1 circuit. We propose no equation: this pathway ends the life of a trace, far beyond any planned run.
 
+### Turnover: the parts of a synapse are replaced
+
+**D14 Ubiquitin–proteasome degradation and protein turnover.** This pathway has two parts. Both act on molecules rather than on a signal, so they belong to every stored state, not to one input.
+
+*Basal turnover.* The proteins that hold a stored weight do not last as long as the memory. In rat hippocampal cultures, protein half-lives range from under a day to more than 20 days (Dörrbaum 2018). In mouse synapses a set of long-lived proteins persists for weeks or longer, and synaptic proteins in general turn over more slowly than cytosolic ones (Heo 2018). A weight can therefore outlast its molecules only if something rebuilds it, which is Crick's (1984) turnover problem. The candidate answers are a self-maintaining kinase switch (Lisman 1985; Miller 2005) and recurring protein synthesis, such as the phase at 12 h after training (Bekinschtein 2007). Eq. 4 keeps captured weight forever, so it silently assumes perfect maintenance. Without maintenance, turnover is a slow downscaling pathway in its own right. The proposed form adds turnover with time constant τ_turn and an optional maintenance term to Eq. 4:
+
+```math
+\frac{dw_{cap}}{dt} = k_{cap}\, h(P)\, T - \frac{w_{cap}}{\tau_{turn}} + k_m\, s_m(t)\, \frac{w_{cap}^{n_m}}{w_{cap}^{n_m} + \theta_m^{n_m}} \quad \text{(proposed)} \qquad (16)
+```
+
+Here s_m is a maintenance-synthesis gate, 0 or 1. With k_m = 0, captured weight decays with τ_turn. With k_m > 0 and n_m > 1, the equation is bistable: a weight above θ_m is held, and one below it decays. Blocking s_m should then erase only weights that have not yet reached the stable branch. τ_turn, k_m, n_m and θ_m have no source. A τ_turn of days is far beyond any planned run, so it needs a stated compression factor or stays out.
+
+*Activity-driven degradation.* In cultured rat hippocampal neurons, activity changes the composition of the postsynaptic density in both directions and reversibly, and this needs ubiquitination and proteasomal degradation (Ehlers 2003). This gives homeostatic scaling (D12) a molecular effector. NMDAR activation leads the E3 ligase Mdm2 to ubiquitinate PSD-95, which is then degraded by the proteasome. Blocking this prevents NMDA-induced AMPAR endocytosis and reduces LTD (Colledge 2003), which would place the UPS inside D4a. The evidence conflicts: a later study found that proteasome inhibition left NMDAR-LTD unchanged and enhanced mGluR-LTD (Citri 2009). Meanwhile, FMRP made during mGluR-LTD is degraded by the proteasome, and proteasome inhibitors were reported to block that LTD (Hou 2006). Its role in D4a and D7 is therefore unsettled, and we propose no equation for it.
+
+*Degradation is needed for late-LTP too.* Blocking proteasomal degradation disrupts late-LTP, and blocking synthesis and degradation together restores it (Fonseca 2006). Eq. 3 cannot reproduce this, because its −P/τ_P term only removes PRPs and so can only weaken capture. One way to reproduce it, which is our hypothesis, is a synthesised constraint R that the proteasome degrades and that opposes capture:
+
+```math
+\frac{dR}{dt} = r_{syn}\, s(t) - k_{UPS}\, R, \qquad k_{cap} \rightarrow \frac{k_{cap}}{1 + R/\theta_R} \quad \text{(proposed)} \qquad (17)
+```
+
+Blocking synthesis (s = 0) removes both P and R. Blocking the proteasome (k_UPS = 0) lets R build up and blocks capture. Blocking both leaves neither, so capture depends only on the P already present. Whether that restores late-LTP depends on P's own loss term, which is a test of the form, not a guarantee.
+
 ## How the processes combine
 
 Each process acts on one term of a single chain, so their effects can be located and combined (Figure 2). Release multiplies the stored weight, the tag feeds the stored weight, and the PRP pool gates the transfer.
 
 ![The chain of model states, with upscaling (red) and downscaling (blue) processes acting on each](figures/plasticity_combination_chain.png)
 
-**Figure 2.** The chain of model states, with upscaling (red) and downscaling (blue) processes acting on each. Read down the middle for the chain, and across each row for what raises or lowers that state. Only the top state runs in NEURON today.
+**Figure 2.** The chain of model states, with upscaling (red) and downscaling (blue) processes acting on each. Read down the middle for the chain, and across each row for what raises or lowers that state. Only the top state runs in NEURON today. D14, added later, is not drawn: it acts on w_cap and on P.
 
 Written as one expression, the amplitude of spike n is:
 
 ```math
-\Delta g_n = \big[\,w_0 + \alpha\,\big(T(t_n) + w_{cap}(t_n)\big)\,\big] \cdot A_n \qquad (16)
+\Delta g_n = \big[\,w_0 + \alpha\,\big(T(t_n) + w_{cap}(t_n)\big)\,\big] \cdot A_n \qquad (18)
 ```
 
-Eq. 16 is our summary; the plan does not yet state it. α converts the unitless T and w_cap into a conductance, and its value has no source yet. Because Eq. 4 moves T into w_cap one-to-one, capture does not change the weight when it happens: it only stops that part from decaying. This assumes early-LTP and captured weight have equal strength per unit of T.
+Eq. 18 is our summary; the plan does not yet state it. α converts the unitless T and w_cap into a conductance, and its value has no source yet. Because Eq. 4 moves T into w_cap one-to-one, capture does not change the weight when it happens: it only stops that part from decaying. This assumes early-LTP and captured weight have equal strength per unit of T.
 
 **1. Inside release, up and down terms add on a log scale.** We split each release exactly:
 
 ```math
-\log\frac{A_n}{U} = \log\frac{u_n^+}{U_{eff}} + \log x_n^- + \log(1 - I_n) + \log(1 - i_{tonic}) \qquad (17)
+\log\frac{A_n}{U} = \log\frac{u_n^+}{U_{eff}} + \log x_n^- + \log(1 - I_n) + \log(1 - i_{tonic}) \qquad (19)
 ```
 
-The terms of Eq. 17 are facilitation, depletion, phasic A1R and tonic A1R. On the three facilitating pathways the net effect flips from up to down at a crossover rate f\*: 27.5 Hz for SC→PYR, 22.6 Hz for SC→PV and BiS, and 75.4 Hz for PYR→O-LM. Inhibitory synapses onto PYR are net down at every rate.
+The terms of Eq. 19 are facilitation, depletion, phasic A1R and tonic A1R. On the three facilitating pathways the net effect flips from up to down at a crossover rate f\*: 27.5 Hz for SC→PYR, 22.6 Hz for SC→PV and BiS, and 75.4 Hz for PYR→O-LM. Inhibitory synapses onto PYR are net down at every rate.
 
 **2. The balance differs by pathway, so STP reshapes E/I.** At a steady 20 Hz, the net factors are ×1.15 for SC→PYR, ×2.77 for PYR→O-LM, ×0.25 for PV→PYR, ×0.26 for BiS→PYR and ×0.12 for O-LM→PYR. Adding A1R inhibition turns SC→PYR to ×0.86. These are single-synapse values; the implied tilt towards excitation is a prediction for the circuit, not a result.
 
@@ -292,7 +319,7 @@ The terms of Eq. 17 are facilitation, depletion, phasic A1R and tonic A1R. On th
 
 **6. A tag has three possible fates.** It is captured, it decays passively through AMPAR endocytosis (D8; Dong 2015), or low-frequency stimulation resets it soon after induction (D5). Reported windows run from 3 min or less (Huang 1999) to at least 20 min (Fujii 1991), depending on protocol and preparation. A reset tag can no longer capture PRPs, and stabilised late-LTP no longer reverses.
 
-**7. The PRP pool links nearby synapses.** A strong input can supply PRPs for a weak input's tag, which is the Frey–Morris design. The original hypothesis made the pool cell-wide, but later work confines tagging and capture to dendritic compartments or branches (Sajikumar 2007, 2011; Govindarajan 2011). With limited synthesis, inputs compete (D9), and protein-synthesis-dependent LTD (D7) draws on the same machinery. Late-LTP also depends on protein degradation: blocking synthesis and degradation together restores it (Fonseca 2006).
+**7. The PRP pool links nearby synapses.** A strong input can supply PRPs for a weak input's tag, which is the Frey–Morris design. The original hypothesis made the pool cell-wide, but later work confines tagging and capture to dendritic compartments or branches (Sajikumar 2007, 2011; Govindarajan 2011). With limited synthesis, inputs compete (D9), and protein-synthesis-dependent LTD (D7) draws on the same machinery. Late-LTP also depends on protein degradation: blocking synthesis and degradation together restores it (Fonseca 2006). The same ubiquitin–proteasome system removes PSD proteins after NMDAR activation and during homeostatic remodelling (D14), so it acts on both sides of the balance.
 
 **8. Replay may select as well as store.** The same ripple could capture what is replayed and depress the rest (D3). Sleep (D11) and homeostatic scaling (D12) then lower total weight, and scaling preserves relative weights because it is multiplicative. Synapses that remain weak can be removed (D13). Each part has evidence: reactivated firing with ripple input induces LTP in rat slices (Sadowski 2016), and ripples trigger NMDAR-dependent depression in mice (Norimoto 2018). That replay content selects between them, and this whole sequence, is our hypothesis.
 
@@ -308,7 +335,7 @@ The release level runs in NEURON; everything slower is still specification (Tabl
 | --- | --- | --- | --- |
 | 1. STP, S0–S3 | Release, up to about 1 s, plus U gains set per run | `TMSyn`, `TMSynPI` | Single-synapse work done: `TMSyn` matches the closed form to 8e-14, and steady-state rates match to 3e-11. Cells calibrated to Bezaire et al. 2016 at 34 °C but not yet running in the circuit |
 | 2. Tag and capture, S4–S6 | Segment signal, tag, PRP pool, captured weight | `SegTag`, NMDA with Mg²⁺ block, STDP step | Not started; none of these is written |
-| After S4–S6 | Slower downscaling, D3 to D13 except D8 | Each a dataclass plus a `build_*` function | Candidates only |
+| After S4–S6 | Slower downscaling, D3 to D14 except D8 | Each a dataclass plus a `build_*` function | Candidates only |
 
 The circuit has two spike generators, four cells and 11 projections, all with Tsodyks–Markram STP. Its only full run used placeholder cells, so it is a pilot and supports no PYR claim. The [status report of November 2026](report_2026-11-06.md) gives the projection table (its Table 1), cell fits (its Tables 2 and 3) and parameter sources (its Table 4).
 
@@ -328,6 +355,8 @@ The combined scheme makes predictions that can fail (Table 4). Only the first ha
 | Retained weight does not decrease as a protein-synthesis block starts later | Block at 0–8 h; report t₅₀ with its CI | S4 | Not started |
 | Partial NMDAR block shrinks the captured weight continuously, not all-or-nothing | NMDAR conductance 0–100% | S5 | Not started |
 | LFS inside the reset window abolishes capture | Add active reset (D5) as a second falsification arm | After S4–S6 | Candidate |
+| Without maintenance, captured weight decays with τ_turn; with it, only weights below θ_m are lost when maintenance synthesis is blocked | Sweep τ_turn and k_m in Eq. 16; block s_m at 12 h | After S4–S6 | Candidate |
+| Blocking synthesis and degradation together restores capture that either block alone prevents | Eq. 17 with s = 0, k_UPS = 0, and both | After S4–S6 | Candidate |
 
 t₅₀, the half-retention time, is compared with the 6 h behavioural window, not fitted to it. The target is a whole-animal measure and the model is one CA1 synapse, so agreement would show consistency, not mechanism.
 
@@ -341,16 +370,16 @@ The scheme is a hypothesis built largely from secondary and partly unchecked sou
 4. **PRP trigger.** The plan increments P on somatic bursts, which has no source. Evidence points to strong synaptic input and dopamine D1/D5 receptor signalling (Huang & Kandel 1995; Moncada & Viola 2007).
 5. **PRP pool.** The plan builds one `SegTag` per tagged synapse group, and capture does not consume P. Competition (D9) needs a pool shared within a compartment and a consumption term.
 6. **No upper bound.** Nothing in the planned equations saturates w_cap (Eq. 4), so repeated events can raise it without limit. LTP saturation is experimentally real (Moser 1998).
-7. **Captured weight.** The model holds it stable, but GluA2 removal erodes established memories (Migues 2016), and maintenance needs recurring protein synthesis (Bekinschtein 2007).
+7. **Captured weight.** The planned model holds it stable, but GluA2 removal erodes established memories (Migues 2016), maintenance needs recurring protein synthesis (Bekinschtein 2007), and the proteins that hold it turn over in days to weeks (Dörrbaum 2018; Heo 2018). D14 proposes turnover and a maintenance term (Eq. 16); neither has values.
 8. **Adult t-LTD.** Presynaptic t-LTD at mouse CA3→CA1 is lost in the fourth postnatal week (Pérez-Rodríguez 2019). Adult rat CA1 population data do show depression when post precedes pre by 20 ms (Pang 2019). The plan's ±20 ms depression lobe therefore has no settled adult mechanism. A presynaptic form would reduce U, not the postsynaptic weight.
 9. **Sign of the change.** One sigmoid can only set a tag. Depression needs the two-threshold form (Eq. 8), and its thresholds have no CA1 values yet.
 10. **Bistratified target.** The plan places BiS input on SR and SO; the circuit currently places it on SR only.
-11. **Weight scale.** Eq. 16 uses one scale α for T and w_cap, which assumes early-LTP and captured weight have equal strength per unit of T. α has no source yet.
+11. **Weight scale.** Eq. 18 uses one scale α for T and w_cap, which assumes early-LTP and captured weight have equal strength per unit of T. α has no source yet.
 
 Other limits on the evidence:
 
 - **Unsourced values:** α, k_cap, n_H, τ_P, K, λ and τ_v have no source and will be swept.
-- **Mixed preparations:** cell targets are mouse and STP values are rat; two pathways use cortical values. Pathway D3 comes from mouse, D6's weight conservation from amygdala, Rac1 forgetting (D13) from *Drosophila*, and the GluN2A/2B data (D10) from rat visual cortex. Much LTD and t-LTD data come from juvenile animals.
+- **Mixed preparations:** cell targets are mouse and STP values are rat; two pathways use cortical values. Pathway D3 comes from mouse, D6's weight conservation from amygdala, Rac1 forgetting (D13) from *Drosophila*, and the GluN2A/2B data (D10) from rat visual cortex. Much LTD and t-LTD data come from juvenile animals. The turnover and UPS data for D14 come mostly from cultured neurons.
 - **Timespans:** the spans of the downscaling pathways are order-of-magnitude summaries, not fitted values.
 - **Circuit size:** one PYR with contact-scaled projections cannot show population effects, ripple generation or replay ordering. Replay enters only as imposed input.
 - **Slow pathways:** those running over days need a stated compression factor in any short run, or they stay out.
@@ -398,6 +427,14 @@ On 6 November 2026 all 84 journal references behind this document resolved corre
 - Kim & Tsien 2008, *Neuron* 58:925. [doi:10.1016/j.neuron.2008.05.009](https://doi.org/10.1016/j.neuron.2008.05.009) (D12)
 - Branco et al. 2008, *Neuron* 59:475 (D12)
 - Wang et al. 2020, *Science* 367:688. [doi:10.1126/science.aaz2288](https://doi.org/10.1126/science.aaz2288) (D13)
+- Crick 1984, *Nature* 312:101 (D14; News and Views)
+- Ehlers 2003, *Nat Neurosci* 6:231 (D14, cultured rat hippocampal neurons)
+- Colledge et al. 2003, *Neuron* 40:595 (D14)
+- Hou et al. 2006, *Neuron* 51:441 (D14; proteasome claim from a secondary excerpt)
+- Dörrbaum et al. 2018, *eLife* 7:e34202. [doi:10.7554/eLife.34202](https://doi.org/10.7554/eLife.34202) (D14, rat hippocampal cultures)
+- Heo et al. 2018, *PNAS* 115:E3827. [doi:10.1073/pnas.1720956115](https://doi.org/10.1073/pnas.1720956115) (D14, mouse)
+
+**Cited for D14 but not yet checked:** Citri et al. 2009, *Eur J Neurosci* (UPS and NMDAR- versus mGluR-LTD); Fonseca et al. 2006, *Neuron* 52:239; Lisman 1985, *PNAS* 82:3055; Miller et al. 2005, *PLoS Biol* 3:e107. The last two are in `docs/related_models.md` with their DOIs.
 
 **Read for parameter values already in the code:**
 

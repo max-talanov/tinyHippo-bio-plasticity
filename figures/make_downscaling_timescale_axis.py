@@ -31,6 +31,7 @@ MECHANISMS = sorted([
     ("11", "Homer1a–mGluR5 sleep scaling",  1 * HR,  1 * DAY, 2 * WK,   "#9a3f5c"),
     ("12", "CaMKIV/TNFα synaptic scaling",  12 * HR, 3 * DAY, None,     "#7d4a8a"),
     ("13", "Complement/microglia pruning",  1 * DAY, 5 * WK,  1 * YR,   "#5a4f86"),
+    ("14", "UPS degradation / turnover",    1 * HR,  3 * WK,  None,     "#4a5a8a"),
 ], key=lambda m: (m[2], m[3], m[0]))
 
 TICKS = [(1 * MS, "1 ms"), (100 * MS, "100 ms"), (1 * S, "1 s"), (1 * MIN, "1 min"),
