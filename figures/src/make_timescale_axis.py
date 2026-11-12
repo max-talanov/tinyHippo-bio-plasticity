@@ -1,8 +1,8 @@
 """Regenerate figures/timescale_axis.png (model Fig. 1).
 
-Bar extents are the time constants of hippocampal_plasticity_model.md §1 (seconds, log axis).
-Colours: one hot colour per process (plasticity_timescales.hot), as in the other timescale figures.
-Solid bar = characteristic duration; dotted tail = persistence after stabilization (row 6),
+Bar extents, tails and colours come from plasticity_timescales.py (UP_SPANS), shared with the model document's
+Fig. 1; one hot colour per process. Seconds, log axis.
+Solid bar = characteristic duration; dotted tail = NMDA deactivation (row 1), persistence after stabilization (row 6),
 recurrence (row 7) or the human range beyond the rodent one (row 8).
 Brackets on the right mark the two kinds of consolidation (model §1, terminology). The shaded band is
 the behavioural protein-synthesis-sensitive window of cellular consolidation (~6 h after learning;
@@ -15,21 +15,14 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-from plasticity_timescales import hot  # noqa: E402
+from plasticity_timescales import UP_COLOURS, UP_ORDER, UP_SPANS  # noqa: E402
 
 MIN, HR, DAY, WK, YR = 60.0, 3600.0, 86400.0, 7 * 86400.0, 365.25 * 86400.0
-# (label, colour, bar start, bar end, tail end or None), times in s; colours are filled in below
-ROWS = [
-    ("Neurotransmission",        None, 4e-4, 6e-3, None),
-    ("STP (AMPA/NMDA)",          None, 8e-3, 1.3, None),
-    ("Ca²⁺ / kinase cascades",   None, 0.75, 5 * MIN, None),
-    ("AMPAR trafficking, E-LTP", None, 1 * MIN, 3 * HR, None),
-    ("Tagging & capture",        None, 1 * MIN, 4 * HR, None),
-    ("Transcription, L-LTP",     None, 30 * MIN, 8 * HR, 14 * DAY),
-    ("SWR replay",               None, 0.1, 1 * DAY, 9 * DAY),
-    ("System consolidation",     None, 0.7 * DAY, 30 * DAY, 10 * YR),
-]
-ROWS = [(lab, c, a, b, tail) for (lab, _, a, b, tail), c in zip(ROWS, hot(len(ROWS)))]
+LABELS = {"U1": "Neurotransmission", "U2": "STP (AMPA/NMDA)", "U3": "Ca²⁺ / kinase cascades",
+          "U4": "AMPAR trafficking, E-LTP", "U5": "Tagging & capture", "U6": "Transcription, L-LTP",
+          "U7": "SWR replay", "U8": "System consolidation"}
+# (label, colour, bar start, bar end, tail end or None), times in s, from plasticity_timescales.py
+ROWS = [(LABELS[k], UP_COLOURS[k], *UP_SPANS[k]) for k in UP_ORDER]
 HOT = dict(cellular=ROWS[4][1], system=ROWS[7][1])
 TICKS = [(1e-3, "1 ms"), (0.1, "100 ms"), (1, "1 s"), (MIN, "1 min"), (HR, "1 hr"),
          (DAY, "1 day"), (WK, "1 week"), (YR, "1 year"), (10 * YR, "10 yr")]
@@ -74,8 +67,8 @@ for s in ("top", "right", "left"):
     ax.spines[s].set_visible(False)
 ax.spines["bottom"].set_color("#484c5e")
 ax.spines["bottom"].set_linewidth(2)
-fig.text(0.012, 0.03, "●●●  dotted = persistence after stabilization (row 6), recurrence (row 7), "
-         "human range (row 8)", fontsize=15, color="#757886")
+fig.text(0.012, 0.03, "●●●  dotted = NMDA deactivation (row 1), persistence after stabilization (row 6), "
+         "recurrence (row 7), human range (row 8)", fontsize=15, color="#757886")
 out = Path(__file__).resolve().parents[1] / "timescale_axis.png"
 fig.savefig(out, facecolor="white")
 print(out)

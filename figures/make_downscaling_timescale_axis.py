@@ -13,8 +13,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from plasticity_timescales import (DOWN_COLOURS, DOWN_ORDER, DOWN_SPANS, MS, S, MIN, H, D, WK, YR,  # noqa: E402
-                                   hot, lighten)
+from plasticity_timescales import (DOWN_COLOURS, DOWN_ORDER, DOWN_SPANS, UP_COLOURS, UP_SPANS,  # noqa: E402
+                                   MS, S, MIN, H, D, WK, YR, lighten)
 
 # Short pathway names; ids match the sections of hippocampal_downscaling_mechanisms.md (D4a is "4a").
 LABELS = {
@@ -29,8 +29,8 @@ LABELS = {
 MECHANISMS = [(k[1:], LABELS[k], *DOWN_SPANS[k], DOWN_COLOURS[k]) for k in DOWN_ORDER]
 
 # Upscaling process drawn on top as a time reference, as in figures/timescale_axis.png:
-# neurotransmission (AMPA/NMDA gating), ~0.5-5 ms per hippocampal_plasticity_model.md §1.
-REFERENCE = [("U1", "Neurotransmission", 0.5 * MS, 5 * MS, None, hot(2)[0])]
+# neurotransmission, with the same span, NMDA tail and colour as in the other timescale figures.
+REFERENCE = [("U1", "Neurotransmission", *UP_SPANS["U1"], UP_COLOURS["U1"])]
 
 TICKS = [(1 * MS, "1 ms"), (100 * MS, "100 ms"), (1 * S, "1 s"), (1 * MIN, "1 min"),
          (1 * H, "1 hr"), (1 * D, "1 day"), (1 * WK, "1 week"),
@@ -68,7 +68,7 @@ def main(out=Path(__file__).with_name("downscaling_timescale_axis.png")):
     ax.scatter([label_x + 0.05, label_x + 0.2, label_x + 0.35], [-1.2] * 3,
                s=90, color="#6b6f7a", clip_on=False)
     ax.text(label_x + 0.6, -1.2, "dotted = recurring / extended tail "
-            "(repeated sleep cycles, slow structural follow-through)",
+            "(NMDA deactivation, repeated sleep cycles, slow structural follow-through)",
             fontsize=13, color="#555a66", va="center")
     ax.text(label_x + 0.6, -1.75, "warm row above the dashed line = U1 neurotransmission, "
             "an upscaling process shown as a time reference",

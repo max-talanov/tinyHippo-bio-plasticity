@@ -75,7 +75,7 @@ The processes run from milliseconds to years, and they overlap instead of handin
 
 ![All upscaling and downscaling processes on one logarithmic time axis, 8 upscaling in hot colours and 15 downscaling in cold colours](figures/plasticity_timescales_all.png)
 
-**Figure 1.** All upscaling and downscaling processes on one logarithmic time axis: 8 upscaling (hot colours, amber to crimson) and 15 downscaling (cold colours, teal to violet), one colour per process. Downscaling rows are sorted by onset, then by end. Bars are order-of-magnitude summaries of the two source documents, not fitted values. Where a source gives only "hours" or "days", the bar's end is our rounding. Figures 1 and 2 are drawn by `make_fig_plasticity_overview.py`.
+**Figure 1.** All upscaling and downscaling processes on one logarithmic time axis: 8 upscaling (hot colours, amber to crimson) and 15 downscaling (cold colours, teal to violet), one colour per process. Downscaling rows are sorted by onset, then by end. Dotted tails mark NMDA deactivation (U1), persistence after stabilisation (U6), recurring replay (U7), the human range of system consolidation (U8), and recurring or extended effects (D11, D13). Spans, tails and colours are shared with the two figures in the repository root's documents (`plasticity_timescales.py`). Bars are order-of-magnitude summaries of the two source documents, not fitted values. Where a source gives only "hours" or "days", the bar's end is our rounding. Figures 1 and 2 are drawn by `make_fig_plasticity_overview.py`.
 
 **Two meanings of "consolidation".** This document always says which one it means.
 

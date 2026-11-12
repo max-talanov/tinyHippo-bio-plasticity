@@ -2,7 +2,7 @@
 
 1. docs/figures/plasticity_timescales_all.png (Figure 1): upscaling U1-U8 and downscaling D1-D14 on one log time
    axis, one colour per process (hot for upscaling, cold for downscaling). Downscaling spans, order and colours come
-   from plasticity_timescales.py; rows are sorted by onset. Spans are order-of-magnitude summaries, not fitted
+   from plasticity_timescales.py, as do the upscaling spans; downscaling rows are sorted by onset. Spans are order-of-magnitude summaries, not fitted
    values. The dashed line is the 6 h behavioural window (personal communication, unverified).
 2. docs/figures/plasticity_combination_chain.png (Figure 2): the chain of model states with the processes that raise
    (left) or lower (right) each one.
@@ -16,24 +16,19 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.patches import FancyBboxPatch
 
-from plasticity_timescales import (DOWN_COLOURS, DOWN_ORDER, DOWN_SPANS, MS, S, MIN, H, D, MO, YR, cold, hot,
-                                   lighten)
+from plasticity_timescales import (DOWN_COLOURS, DOWN_ORDER, DOWN_SPANS, UP_COLOURS, UP_ORDER, UP_SPANS, MS, S, MIN,
+                                   H, D, MO, YR, cold, hot, lighten)
 
 PT = 0.72                       # points per pixel at dpi 100
 INK, GREY, GRID = "#1A1A1A", "#6B6B6B", "#D9D8D3"
 UP_EDGE, DN_EDGE = "#D0393B", "#2F73D0"   # Figure 2 box outlines
 plt.rcParams["font.family"] = ["Arial", "DejaVu Sans"]
 
-UPSCALING = [
-    ("U1 Neurotransmission", 0.5 * MS, 5 * MS),
-    ("U2 STP", 10 * MS, 1 * S),
-    ("U3 Ca²⁺/kinase cascades", 1 * S, 5 * MIN),
-    ("U4 AMPAR trafficking, early-LTP", 1 * MIN, 3 * H),
-    ("U5 Tagging and capture", 1 * MIN, 3 * H),
-    ("U6 Late-LTP, to stabilisation", 30 * MIN, 8 * H),
-    ("U7 SWR replay", 40 * MS, 3 * D),
-    ("U8 System consolidation", 1 * D, 10 * YR),
-]
+UP_LABELS = {
+    "U1": "Neurotransmission", "U2": "STP", "U3": "Ca²⁺/kinase cascades", "U4": "AMPAR trafficking, early-LTP",
+    "U5": "Tagging and capture", "U6": "Late-LTP, to stabilisation", "U7": "SWR replay",
+    "U8": "System consolidation",
+}
 DOWN_LABELS = {
     "D1": "Vesicle-pool depletion", "D2": "Presynaptic GPCR inhibition",
     "D3": "SWR-triggered NMDAR depression", "D4a": "NMDAR → calcineurin/PP1 LTD", "D4b": "eCB → CB1 t-LTD",
@@ -42,10 +37,10 @@ DOWN_LABELS = {
     "D11": "Homer1a sleep scaling", "D12": "CaMKIV/TNFα scaling", "D13": "Pruning, active forgetting",
     "D14": "Protein turnover, UPS",
 }
-# (label, start, end, colour): upscaling in model order with hot colours; downscaling sorted by onset
-# (plasticity_timescales.DOWN_ORDER) with cold colours and the shared spans.
-UP_ROWS = [(lab, a, b, c) for (lab, a, b), c in zip(UPSCALING, hot(len(UPSCALING)))]
-DOWN_ROWS = [(f"{k} {DOWN_LABELS[k]}", *DOWN_SPANS[k][:2], DOWN_COLOURS[k]) for k in DOWN_ORDER]
+# (label, start, end, tail end or None, colour): upscaling in model order with hot colours; downscaling sorted by
+# onset with cold colours. Spans, order and colours all come from plasticity_timescales.py.
+UP_ROWS = [(f"{k} {UP_LABELS[k]}", *UP_SPANS[k], UP_COLOURS[k]) for k in UP_ORDER]
+DOWN_ROWS = [(f"{k} {DOWN_LABELS[k]}", *DOWN_SPANS[k], DOWN_COLOURS[k]) for k in DOWN_ORDER]
 TICKS = [(MS, "1 ms"), (S, "1 s"), (MIN, "1 min"), (H, "1 h"), (D, "1 d"), (MO, "1 mo"), (YR, "1 yr"),
          (10 * YR, "10 yr")]
 
@@ -83,14 +78,18 @@ def timescales(out="docs/figures/plasticity_timescales_all.png"):
     x6 = x_of(6 * H)
     ax.plot([x6, x6], [112, y_bottom], color="#B4B2A9", lw=1.5, ls=(0, (4, 4)), zorder=1)
     text(ax, x6, y_bottom + 30, "6 h behavioural window (unverified)", 19, colour=GREY, ha="center")
+    text(ax, x_label, y_bottom + 30, "dotted = extended or recurring tail", 19, colour=GREY)
 
     y = top - row * 0.55
     for title, rows, key in (("Upscaling", UP_ROWS, hot(3)[1]), ("Downscaling", DOWN_ROWS, cold(3)[1])):
         box(ax, x_label, y - 9, x_label + 18, y + 9, lighten(key, 0.55), key, lw=1.6, r=3)
         text(ax, x_label + 29, y, title, 23, weight="bold")
         y += row
-        for label, a, b, colour in rows:
+        for label, a, b, tail, colour in rows:
             text(ax, x_label, y, label, 20)
+            if tail:
+                xs = np.arange(x_of(b) + 9, x_of(tail), 9)
+                ax.scatter(xs, np.full_like(xs, y), s=16, color=lighten(colour, 0.35), zorder=2, lw=0)
             box(ax, x_of(a), y - 10.5, x_of(b), y + 10.5, lighten(colour, 0.55), colour, lw=1.6, r=5)
             y += row
         y += row * 0.35

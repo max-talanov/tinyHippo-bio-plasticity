@@ -39,7 +39,10 @@ event, and one is system consolidation.
 
 ![Eight plasticity and memory processes plotted on one logarithmic time axis from 1 ms to 10 years — bar position marks onset, length marks characteristic duration, and processes visibly overlap rather than handing off in strict sequence.](figures/timescale_axis.png)
 
-*Fig. 1 — The eight plasticity and memory processes on one log time axis. Brackets mark the
+*Fig. 1 — The eight plasticity and memory processes on one log time axis, one hot colour per process.
+Spans and tails are shared with the other timescale figures (`plasticity_timescales.py`, from Table 1 of
+`docs/plasticity_up_down_model_2026-11-06.md`), so they can differ slightly from the rounded constants in the
+table below; the dotted tail on row 1 is NMDA deactivation (hundreds of ms). Brackets mark the
 hypothesised synaptic correlate of cellular consolidation (rows 5–6) and system consolidation (row 8).
 Row 6's solid bar is the stabilization time; its dotted tail is persistence. The shaded band is the
 behavioural protein-synthesis-sensitive window (~6 h after learning; unverified), drawn on the same
