@@ -73,9 +73,9 @@ Cell and pathway names match the [status report of November 2026](report_2026-11
 
 The processes run from milliseconds to years, and they overlap instead of handing off in sequence. Upscaling and downscaling coexist from about 10 ms to months, so no level of the synapse has only one direction (Figure 1).
 
-![All upscaling and downscaling processes on one logarithmic time axis, 8 upscaling (red) and 14 downscaling (blue)](figures/plasticity_timescales_all.png)
+![All upscaling and downscaling processes on one logarithmic time axis, 8 upscaling (red) and 15 downscaling (blue)](figures/plasticity_timescales_all.png)
 
-**Figure 1.** All upscaling and downscaling processes on one logarithmic time axis: 8 upscaling (red) and 14 downscaling (blue). D14 (protein turnover) was added after this figure was drawn and is not shown. Bars are order-of-magnitude summaries of the two source documents, not fitted values. Where a source gives only "hours" or "days", the bar's end is our rounding.
+**Figure 1.** All upscaling and downscaling processes on one logarithmic time axis: 8 upscaling (red) and 15 downscaling (blue). Bars are order-of-magnitude summaries of the two source documents, not fitted values. Where a source gives only "hours" or "days", the bar's end is our rounding. Figures 1 and 2 are drawn by `make_fig_plasticity_overview.py`.
 
 **Two meanings of "consolidation".** This document always says which one it means.
 
@@ -291,7 +291,7 @@ Each process acts on one term of a single chain, so their effects can be located
 
 ![The chain of model states, with upscaling (red) and downscaling (blue) processes acting on each](figures/plasticity_combination_chain.png)
 
-**Figure 2.** The chain of model states, with upscaling (red) and downscaling (blue) processes acting on each. Read down the middle for the chain, and across each row for what raises or lowers that state. Only the top state runs in NEURON today. D14, added later, is not drawn: it acts on w_cap and on P.
+**Figure 2.** The chain of model states, with upscaling (red) and downscaling (blue) processes acting on each. Read down the middle for the chain, and across each row for what raises or lowers that state. Only the top state runs in NEURON today. D14 appears twice, because it acts on both P and w_cap.
 
 Written as one expression, the amplitude of spike n is:
 
