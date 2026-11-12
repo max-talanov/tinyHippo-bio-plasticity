@@ -1,6 +1,7 @@
 """Regenerate figures/timescale_axis.png (model Fig. 1).
 
 Bar extents are the time constants of hippocampal_plasticity_model.md §1 (seconds, log axis).
+Colours: one hot colour per process (plasticity_timescales.hot), as in the other timescale figures.
 Solid bar = characteristic duration; dotted tail = persistence after stabilization (row 6),
 recurrence (row 7) or the human range beyond the rodent one (row 8).
 Brackets on the right mark the two kinds of consolidation (model §1, terminology). The shaded band is
@@ -10,20 +11,26 @@ params.SLOW_TIMESCALES, unverified), drawn from 1 min to 6 h on the same axis.
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from plasticity_timescales import hot  # noqa: E402
+
 MIN, HR, DAY, WK, YR = 60.0, 3600.0, 86400.0, 7 * 86400.0, 365.25 * 86400.0
-# (label, colour, bar start, bar end, tail end or None), times in s
+# (label, colour, bar start, bar end, tail end or None), times in s; colours are filled in below
 ROWS = [
-    ("Neurotransmission",        "#2e6fa7", 4e-4, 6e-3, None),
-    ("STP (AMPA/NMDA)",          "#1e8fa0", 8e-3, 1.3, None),
-    ("Ca²⁺ / kinase cascades",   "#4c8c3b", 0.75, 5 * MIN, None),
-    ("AMPAR trafficking, E-LTP", "#ad8a2e", 1 * MIN, 3 * HR, None),
-    ("Tagging & capture",        "#c1642f", 1 * MIN, 4 * HR, None),
-    ("Transcription, L-LTP",     "#c1642f", 30 * MIN, 8 * HR, 14 * DAY),
-    ("SWR replay",               "#a6433f", 0.1, 1 * DAY, 9 * DAY),
-    ("System consolidation",     "#6b4a8a", 0.7 * DAY, 30 * DAY, 10 * YR),
+    ("Neurotransmission",        None, 4e-4, 6e-3, None),
+    ("STP (AMPA/NMDA)",          None, 8e-3, 1.3, None),
+    ("Ca²⁺ / kinase cascades",   None, 0.75, 5 * MIN, None),
+    ("AMPAR trafficking, E-LTP", None, 1 * MIN, 3 * HR, None),
+    ("Tagging & capture",        None, 1 * MIN, 4 * HR, None),
+    ("Transcription, L-LTP",     None, 30 * MIN, 8 * HR, 14 * DAY),
+    ("SWR replay",               None, 0.1, 1 * DAY, 9 * DAY),
+    ("System consolidation",     None, 0.7 * DAY, 30 * DAY, 10 * YR),
 ]
+ROWS = [(lab, c, a, b, tail) for (lab, _, a, b, tail), c in zip(ROWS, hot(len(ROWS)))]
+HOT = dict(cellular=ROWS[4][1], system=ROWS[7][1])
 TICKS = [(1e-3, "1 ms"), (0.1, "100 ms"), (1, "1 s"), (MIN, "1 min"), (HR, "1 hr"),
          (DAY, "1 day"), (WK, "1 week"), (YR, "1 year"), (10 * YR, "10 yr")]
 GRID = [1e-3, 1e-2, 0.1, 1, 10, MIN, 600, HR, 10 * HR, DAY, WK, 30 * DAY, YR, 10 * YR]
@@ -35,9 +42,9 @@ ax.set_xscale("log")
 ax.set_xlim(1.5e-4, 2e9)
 ax.set_ylim(len(ROWS) - 0.4, -0.8)
 PSI_WINDOW = (1 * MIN, 6 * HR)  # shaded over rows 4-6 (indices 3-5)
-ax.fill_between(PSI_WINDOW, 2.55, 5.45, color="#c1642f", alpha=0.08, lw=0, zorder=0)
+ax.fill_between(PSI_WINDOW, 2.55, 5.45, color=HOT["cellular"], alpha=0.08, lw=0, zorder=0)
 ax.text(PSI_WINDOW[0] / 1.3, 2.62, "protein-synthesis-sensitive window\n(behavioural, ~6 h; unverified)",
-        color="#c1642f", fontsize=11, ha="right", va="center")
+        color=HOT["cellular"], fontsize=11, ha="right", va="center")
 for g in GRID:
     ax.axvline(g, color="#dddddd", lw=1.2, zorder=0, ymax=0.97)
 for i, (lab, col, a, b, tail) in enumerate(ROWS):
@@ -57,8 +64,8 @@ def bracket(i0, i1, text, col):
             fontsize=13, va="center", ha="left", clip_on=False)
 
 
-bracket(4, 5, "cellular\nconsolidation\n(synaptic correlate,\nhypothesised;\n~0–6 h; any region)", "#c1642f")
-bracket(7, 7, "system\nconsolidation\n(days–years)", "#6b4a8a")
+bracket(4, 5, "cellular\nconsolidation\n(synaptic correlate,\nhypothesised;\n~0–6 h; any region)", HOT["cellular"])
+bracket(7, 7, "system\nconsolidation\n(days–years)", HOT["system"])
 
 ax.set_yticks([])
 ax.set_xticks([t for t, _ in TICKS], [l for _, l in TICKS], fontsize=14, color="#444")

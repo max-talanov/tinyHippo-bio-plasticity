@@ -1,9 +1,9 @@
 """Overview figures for docs/plasticity_up_down_model_2026-11-06.md.
 
 1. docs/figures/plasticity_timescales_all.png (Figure 1): upscaling U1-U8 and downscaling D1-D14 on one log time
-   axis. Spans are order-of-magnitude summaries of the two source documents (hippocampal_plasticity_model.md and
-   hippocampal_downscaling_mechanisms.md), not fitted values; where a source gives only "hours" or "days", the end is
-   our rounding. The dashed line is the 6 h behavioural window (personal communication, unverified).
+   axis, one colour per process (hot for upscaling, cold for downscaling). Downscaling spans, order and colours come
+   from plasticity_timescales.py; rows are sorted by onset. Spans are order-of-magnitude summaries, not fitted
+   values. The dashed line is the 6 h behavioural window (personal communication, unverified).
 2. docs/figures/plasticity_combination_chain.png (Figure 2): the chain of model states with the processes that raise
    (left) or lower (right) each one.
 Both were first drawn by hand; this script redraws them so they can be regenerated. No data, no seeds.
@@ -16,11 +16,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.patches import FancyBboxPatch
 
-MS, S, MIN, H, D, WK, MO, YR = 1e-3, 1.0, 60.0, 3600.0, 86400.0, 604800.0, 2.592e6, 3.156e7
+from plasticity_timescales import (DOWN_COLOURS, DOWN_ORDER, DOWN_SPANS, MS, S, MIN, H, D, MO, YR, cold, hot,
+                                   lighten)
+
 PT = 0.72                       # points per pixel at dpi 100
 INK, GREY, GRID = "#1A1A1A", "#6B6B6B", "#D9D8D3"
-UP_FILL, UP_EDGE = "#F2C4C4", "#D0393B"
-DN_FILL, DN_EDGE = "#BFD5F2", "#2F73D0"
+UP_EDGE, DN_EDGE = "#D0393B", "#2F73D0"   # Figure 2 box outlines
 plt.rcParams["font.family"] = ["Arial", "DejaVu Sans"]
 
 UPSCALING = [
@@ -33,23 +34,18 @@ UPSCALING = [
     ("U7 SWR replay", 40 * MS, 3 * D),
     ("U8 System consolidation", 1 * D, 10 * YR),
 ]
-DOWNSCALING = [
-    ("D1 Vesicle-pool depletion", 10 * MS, 10 * S),
-    ("D2 Presynaptic GPCR inhibition", 50 * MS, 3 * H),
-    ("D3 SWR-triggered NMDAR depression", 40 * MS, 3 * D),
-    ("D4a NMDAR → calcineurin/PP1 LTD", 1 * S, 3 * H),
-    ("D4b eCB → CB1 t-LTD", 1 * S, 3 * H),
-    ("D5 PP1 depotentiation", 1 * MIN, 30 * MIN),
-    ("D6 Heterosynaptic depression", 1 * MIN, 3 * H),
-    ("D7 mGluR5 local-translation LTD", 1 * MIN, 1 * D),
-    ("D8 GluA2 endocytosis", 1 * H, 2 * WK),
-    ("D9 PRP competition", 30 * MIN, 8 * H),
-    ("D10 GluN2A/2B threshold shift", 30 * MIN, 3 * D),
-    ("D11 Homer1a sleep scaling", 1 * H, 8 * H),
-    ("D12 CaMKIV/TNFα scaling", 4 * H, 3 * D),
-    ("D13 Pruning, active forgetting", 1 * D, 6 * MO),
-    ("D14 Protein turnover, UPS", 1 * H, 3 * WK),
-]
+DOWN_LABELS = {
+    "D1": "Vesicle-pool depletion", "D2": "Presynaptic GPCR inhibition",
+    "D3": "SWR-triggered NMDAR depression", "D4a": "NMDAR → calcineurin/PP1 LTD", "D4b": "eCB → CB1 t-LTD",
+    "D5": "PP1 depotentiation", "D6": "Heterosynaptic depression", "D7": "mGluR5 local-translation LTD",
+    "D8": "GluA2 endocytosis", "D9": "PRP competition", "D10": "GluN2A/2B threshold shift",
+    "D11": "Homer1a sleep scaling", "D12": "CaMKIV/TNFα scaling", "D13": "Pruning, active forgetting",
+    "D14": "Protein turnover, UPS",
+}
+# (label, start, end, colour): upscaling in model order with hot colours; downscaling sorted by onset
+# (plasticity_timescales.DOWN_ORDER) with cold colours and the shared spans.
+UP_ROWS = [(lab, a, b, c) for (lab, a, b), c in zip(UPSCALING, hot(len(UPSCALING)))]
+DOWN_ROWS = [(f"{k} {DOWN_LABELS[k]}", *DOWN_SPANS[k][:2], DOWN_COLOURS[k]) for k in DOWN_ORDER]
 TICKS = [(MS, "1 ms"), (S, "1 s"), (MIN, "1 min"), (H, "1 h"), (D, "1 d"), (MO, "1 mo"), (YR, "1 yr"),
          (10 * YR, "10 yr")]
 
@@ -76,7 +72,7 @@ def timescales(out="docs/figures/plasticity_timescales_all.png"):
     w, row, x_label = 1344, 35.4, 42
     x_of = lambda t: 765 + 63 * np.log10(t)      # 63 px per decade, 1 s at x = 765
     top = 150
-    h = int(top + row * (len(UPSCALING) + len(DOWNSCALING) + 1.35) + 60)
+    h = int(top + row * (len(UP_ROWS) + len(DOWN_ROWS) + 1.35) + 60)
     fig, ax = canvas(w, h)
     text(ax, x_label, 42, "Upscaling and downscaling overlap from milliseconds to years", 25, weight="bold")
     y_bottom = h - 58
@@ -89,14 +85,13 @@ def timescales(out="docs/figures/plasticity_timescales_all.png"):
     text(ax, x6, y_bottom + 30, "6 h behavioural window (unverified)", 19, colour=GREY, ha="center")
 
     y = top - row * 0.55
-    for title, rows, fill, edge in (("Upscaling", UPSCALING, UP_FILL, UP_EDGE),
-                                    ("Downscaling", DOWNSCALING, DN_FILL, DN_EDGE)):
-        box(ax, x_label, y - 9, x_label + 18, y + 9, fill, edge, lw=1.6, r=3)
+    for title, rows, key in (("Upscaling", UP_ROWS, hot(3)[1]), ("Downscaling", DOWN_ROWS, cold(3)[1])):
+        box(ax, x_label, y - 9, x_label + 18, y + 9, lighten(key, 0.55), key, lw=1.6, r=3)
         text(ax, x_label + 29, y, title, 23, weight="bold")
         y += row
-        for label, a, b in rows:
+        for label, a, b, colour in rows:
             text(ax, x_label, y, label, 20)
-            box(ax, x_of(a), y - 10.5, x_of(b), y + 10.5, fill, edge, lw=1.6, r=5)
+            box(ax, x_of(a), y - 10.5, x_of(b), y + 10.5, lighten(colour, 0.55), colour, lw=1.6, r=5)
             y += row
         y += row * 0.35
     fig.savefig(out, dpi=100, facecolor="white")

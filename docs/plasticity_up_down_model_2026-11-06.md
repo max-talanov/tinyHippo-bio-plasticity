@@ -73,9 +73,9 @@ Cell and pathway names match the [status report of November 2026](report_2026-11
 
 The processes run from milliseconds to years, and they overlap instead of handing off in sequence. Upscaling and downscaling coexist from about 10 ms to months, so no level of the synapse has only one direction (Figure 1).
 
-![All upscaling and downscaling processes on one logarithmic time axis, 8 upscaling (red) and 15 downscaling (blue)](figures/plasticity_timescales_all.png)
+![All upscaling and downscaling processes on one logarithmic time axis, 8 upscaling in hot colours and 15 downscaling in cold colours](figures/plasticity_timescales_all.png)
 
-**Figure 1.** All upscaling and downscaling processes on one logarithmic time axis: 8 upscaling (red) and 15 downscaling (blue). Bars are order-of-magnitude summaries of the two source documents, not fitted values. Where a source gives only "hours" or "days", the bar's end is our rounding. Figures 1 and 2 are drawn by `make_fig_plasticity_overview.py`.
+**Figure 1.** All upscaling and downscaling processes on one logarithmic time axis: 8 upscaling (hot colours, amber to crimson) and 15 downscaling (cold colours, teal to violet), one colour per process. Downscaling rows are sorted by onset, then by end. Bars are order-of-magnitude summaries of the two source documents, not fitted values. Where a source gives only "hours" or "days", the bar's end is our rounding. Figures 1 and 2 are drawn by `make_fig_plasticity_overview.py`.
 
 **Two meanings of "consolidation".** This document always says which one it means.
 
@@ -135,25 +135,25 @@ Downscaling is not one process. We list 15 molecular pathways (Table 2), each de
 
 Rules such as STDP, BCM or firing-rate homeostasis are a separate level: they say which activity pattern changes a weight, not how. One rule can use several pathways, and one pathway can serve several rules. So only sensors and effectors become mechanisms; a rule is what a mechanism must reproduce, which makes it an acceptance test.
 
-**Table 2.** The fifteen downscaling pathways: site, timescale, sensor and effector, rule, term in the model and status.
+**Table 2.** The fifteen downscaling pathways, sorted by onset: site, timescale, sensor and effector, rule, term in the model, status, and how well the pathway is supported in the healthy adult hippocampus. The last column is explained, with evidence, in the plausibility section of `hippocampal_downscaling_mechanisms.md`: established, likely (mature but not adult), conditional (adult, but only in a given state, protocol or area), uncertain, or developmental (lost in adults).
 
-| Pathway (site) | Timescale | Sensor → effector | Rule | Term in the model | Status |
-| --- | --- | --- | --- | --- | --- |
-| D1 Vesicle-pool depletion (pre) | 10 ms–10 s | Spike and VGCC Ca²⁺ → readily releasable pool depleted | Frequency-dependent depression | x in `TMSyn` | Verified, in circuit |
-| D2 Presynaptic GPCR inhibition (pre) | 50 ms–min; tonic over hours | A1R, GABA_B, group II/III mGluR → lower P_r | Tonic and neuromodulatory gain | U_eff in `TMSynPI` | A1R verified, not in circuit |
-| D3 SWR-triggered NMDAR depression (post) | Ripple about 40–100 ms; effect lasts hours | NMDAR during SWR → AMPAR weakening (effector unresolved) | Offline depression | Stored weight of non-replayed inputs | Candidate |
-| D4a NMDAR → calcineurin/PP1 LTD (post) | Induction s–min; expression hours | Moderate NMDAR Ca²⁺ → GluA1-S845 dephosphorylation, AMPAR endocytosis | Rate-dependent LTD | Low-Ca branch of g_Ca | Candidate |
-| D4b Endocannabinoid → CB1 t-LTD (pre, induced post) | Induction s–min; expression hours | Post mGluR and Ca²⁺ → eCB; pre CB1 and NMDAR → lower P_r | STDP depression | Reduction of U | Open: see limits |
-| D5 PP1 depotentiation (post) | Minutes to tens of minutes, by protocol | LFS, NMDAR Ca²⁺ and A1R → PP1 reverses phosphorylation | Reversal of recent LTP | Active reset of T | Candidate |
-| D6 IP3R/calcineurin heterosynaptic depression (post, unstimulated) | Min–hours | Neighbour potentiation, group I mGluR, IP3R Ca²⁺ → inactive spines shrink | Heterosynaptic normalisation | Conservation per segment | Candidate |
-| D7 mGluR5 → local-translation LTD (post) | Min–1 day | Group I mGluR → Arc, STEP, MAP1B translation, AMPAR endocytosis | Protein-synthesis-dependent LTD | Draws on the PRP machinery | Deferred |
-| D8 Constitutive GluA2 endocytosis (post) | Early-LTP under 3 h; also erodes established memory over weeks | No sensor: absence of capture → inserted AMPARs removed | Decay of unconsolidated LTP | τ_tag | Planned, S4 |
-| D9 PRP competition (post; extent of the pool debated) | 30 min–8 h | No sensor: finite pool, synthesis against degradation | Competition between inputs | Shared capture resource | Not in the equations yet |
-| D10 GluN2A/2B threshold shift (post) | 30 min–days | Activity history → subunit ratio changes | BCM sliding threshold | Moves θ_p of g_Ca | Candidate |
-| D11 Homer1a–mGluR5 sleep scaling (post) | Hours, each sleep cycle | Sleep state → Homer1a → GluA1 dephosphorylation, AMPAR removal | SHY | Global step between replay epochs | Deferred |
-| D12 CaMKIV/TNFα synaptic scaling (post; also P_r) | Hours to days | Somatic Ca²⁺, glial TNFα → multiplicative AMPAR change | Firing-rate homeostasis | Multiplicative factor on weights | Candidate, needs stated compression |
-| D13 Complement pruning, Rac1/cofilin (whole synapse) | Days–months | C1q/C3 at weak synapses → microglial removal; actin disassembly | Structural forgetting | Removal of uncaptured traces | Deferred |
-| D14 Ubiquitin–proteasome degradation and protein turnover (post; also the PRP pool) | Hours (activity-driven) to days–weeks (basal turnover) | NMDAR Ca²⁺ or sustained activity → E3 ligases (e.g. Mdm2) ubiquitinate PSD proteins → proteasome; basal turnover has no sensor | Homeostatic PSD remodelling; contribution to LTD; loss of unmaintained weight | Turnover and maintenance of w_cap; degraded constraint on capture | Candidate; LTD evidence conflicting |
+| Pathway (site) | Timescale | Sensor → effector | Rule | Term in the model | Status | Healthy adult hippocampus |
+| --- | --- | --- | --- | --- | --- | --- |
+| D1 Vesicle-pool depletion (pre) | 10 ms–10 s | Spike and VGCC Ca²⁺ → readily releasable pool depleted | Frequency-dependent depression | x in `TMSyn` | Verified, in circuit | Established |
+| D3 SWR-triggered NMDAR depression (post) | Ripple about 40–100 ms; effect lasts hours | NMDAR during SWR → AMPAR weakening (effector unresolved) | Offline depression | Stored weight of non-replayed inputs | Candidate | Conditional |
+| D2 Presynaptic GPCR inhibition (pre) | 50 ms–min; tonic over hours | A1R, GABA_B, group II/III mGluR → lower P_r | Tonic and neuromodulatory gain | U_eff in `TMSynPI` | A1R verified, not in circuit | Established |
+| D4a NMDAR → calcineurin/PP1 LTD (post) | Induction s–min; expression hours | Moderate NMDAR Ca²⁺ → GluA1-S845 dephosphorylation, AMPAR endocytosis | Rate-dependent LTD | Low-Ca branch of g_Ca | Candidate | Conditional |
+| D4b Endocannabinoid → CB1 t-LTD (pre, induced post) | Induction s–min; expression hours | Post mGluR and Ca²⁺ → eCB; pre CB1 and NMDAR → lower P_r | STDP depression | Reduction of U | Open: see limits | Developmental |
+| D5 PP1 depotentiation (post) | Minutes to tens of minutes, by protocol | LFS, NMDAR Ca²⁺ and A1R → PP1 reverses phosphorylation | Reversal of recent LTP | Active reset of T | Candidate | Established |
+| D6 IP3R/calcineurin heterosynaptic depression (post, unstimulated) | Min–hours | Neighbour potentiation, group I mGluR, IP3R Ca²⁺ → inactive spines shrink | Heterosynaptic normalisation | Conservation per segment | Candidate | Uncertain |
+| D7 mGluR5 → local-translation LTD (post) | Min–1 day | Group I mGluR → Arc, STEP, MAP1B translation, AMPAR endocytosis | Protein-synthesis-dependent LTD | Draws on the PRP machinery | Deferred | Likely |
+| D9 PRP competition (post; extent of the pool debated) | 30 min–8 h | No sensor: finite pool, synthesis against degradation | Competition between inputs | Shared capture resource | Not in the equations yet | Conditional |
+| D10 GluN2A/2B threshold shift (post) | 30 min–days | Activity history → subunit ratio changes | BCM sliding threshold | Moves θ_p of g_Ca | Candidate | Conditional |
+| D11 Homer1a–mGluR5 sleep scaling (post) | Hours, each sleep cycle | Sleep state → Homer1a → GluA1 dephosphorylation, AMPAR removal | SHY | Global step between replay epochs | Deferred | Conditional |
+| D8 Constitutive GluA2 endocytosis (post) | Early-LTP under 3 h; also erodes established memory over weeks | No sensor: absence of capture → inserted AMPARs removed | Decay of unconsolidated LTP | τ_tag | Planned, S4 | Established |
+| D14 Ubiquitin–proteasome degradation and protein turnover (post; also the PRP pool) | Hours (activity-driven) to days–weeks (basal turnover) | NMDAR Ca²⁺ or sustained activity → E3 ligases (e.g. Mdm2) ubiquitinate PSD proteins → proteasome; basal turnover has no sensor | Homeostatic PSD remodelling; contribution to LTD; loss of unmaintained weight | Turnover and maintenance of w_cap; degraded constraint on capture | Candidate; LTD evidence conflicting | Established / uncertain |
+| D12 CaMKIV/TNFα synaptic scaling (post; also P_r) | Hours to days | Somatic Ca²⁺, glial TNFα → multiplicative AMPAR change | Firing-rate homeostasis | Multiplicative factor on weights | Candidate, needs stated compression | Uncertain |
+| D13 Complement pruning, Rac1/cofilin (whole synapse) | Days–months | C1q/C3 at weak synapses → microglial removal; actin disassembly | Structural forgetting | Removal of uncaptured traces | Deferred | Established |
 
 "Candidate" means proposed for after S4–S6, in this order: D8 and D5, D4a and D10, D6, D3, D12. Nothing in this group is built yet.
 
@@ -379,7 +379,7 @@ The scheme is a hypothesis built largely from secondary and partly unchecked sou
 Other limits on the evidence:
 
 - **Unsourced values:** α, k_cap, n_H, τ_P, K, λ and τ_v have no source and will be swept.
-- **Mixed preparations:** cell targets are mouse and STP values are rat; two pathways use cortical values. Pathway D3 comes from mouse, D6's weight conservation from amygdala, Rac1 forgetting (D13) from *Drosophila*, and the GluN2A/2B data (D10) from rat visual cortex. Much LTD and t-LTD data come from juvenile animals. The turnover and UPS data for D14 come mostly from cultured neurons.
+- **Mixed preparations:** cell targets are mouse and STP values are rat; two pathways use cortical values. Pathway D3 comes from mouse, D6's weight conservation from amygdala, Rac1 forgetting (D13) from *Drosophila*, and the GluN2A/2B data (D10) from rat visual cortex. Much LTD and t-LTD data come from juvenile animals. Rated for the healthy adult hippocampus (Table 2), six pathways are established, one likely, five conditional, two uncertain and one (D4b) developmental. The turnover and UPS data for D14 come mostly from cultured neurons.
 - **Timespans:** the spans of the downscaling pathways are order-of-magnitude summaries, not fitted values.
 - **Circuit size:** one PYR with contact-scaled projections cannot show population effects, ripple generation or replay ordering. Replay enters only as imposed input.
 - **Slow pathways:** those running over days need a stated compression factor in any short run, or they stay out.
@@ -433,6 +433,12 @@ On 6 November 2026 all 84 journal references behind this document resolved corre
 - Hou et al. 2006, *Neuron* 51:441 (D14; proteasome claim from a secondary excerpt)
 - Dörrbaum et al. 2018, *eLife* 7:e34202. [doi:10.7554/eLife.34202](https://doi.org/10.7554/eLife.34202) (D14, rat hippocampal cultures)
 - Heo et al. 2018, *PNAS* 115:E3827. [doi:10.1073/pnas.1720956115](https://doi.org/10.1073/pnas.1720956115) (D14, mouse)
+
+- Dudek & Bear 1993, *J Neurosci* 13:2910 (D4a, age dependence)
+- Manahan-Vaughan & Braunewell 1999, *PNAS* 96:8739 (D4a, adult in vivo)
+- Xu, Anwyl & Rowan 1998, *Nature* 394:891. [doi:10.1038/29783](https://doi.org/10.1038/29783) (D5, adult in vivo)
+- Nosyreva & Huber 2005, *J Neurosci* 25:2992 (D7, developmental switch)
+- Abraham et al. 2001, *PNAS* 98:10924 (D10, adult dentate gyrus in vivo)
 
 **Cited for D14 but not yet checked:** Citri et al. 2009, *Eur J Neurosci* (UPS and NMDAR- versus mGluR-LTD); Fonseca et al. 2006, *Neuron* 52:239; Lisman 1985, *PNAS* 82:3055; Miller et al. 2005, *PLoS Biol* 3:e107. The last two are in `docs/related_models.md` with their DOIs.
 

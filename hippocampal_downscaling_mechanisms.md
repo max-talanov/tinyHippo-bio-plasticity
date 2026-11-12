@@ -26,12 +26,14 @@ Only the sensor and effector levels should be modelled as mechanisms (a dataclas
 function, per `CLAUDE.md`). The rule is what a mechanism should *reproduce* when driven with the
 corresponding protocol. It is an acceptance test, not a component.
 
-![Neurotransmission as a grey reference row, then fifteen molecular downscaling pathways on the same logarithmic time axis as Fig. 1 of the model document, from 1 ms to 10 years, ordered by onset so the bars form a descending staircase. Vesicle depletion, presynaptic GPCR inhibition and SWR-triggered NMDAR depression start in the millisecond range; NMDAR/phosphatase LTD, endocannabinoid t-LTD, depotentiation, heterosynaptic and tag-related depression start at seconds to minutes; BCM metaplasticity, sleep renormalization and synaptic scaling start at tens of minutes to hours; protein turnover runs from hours (activity-driven degradation) to weeks (basal turnover); pruning and active forgetting start at days and extend to a year.](figures/downscaling_timescale_axis.png)
+![Neurotransmission as a warm reference row, then fifteen molecular downscaling pathways on the same logarithmic time axis as Fig. 1 of the model document, from 1 ms to 10 years, ordered by onset so the bars form a descending staircase. Vesicle depletion, presynaptic GPCR inhibition and SWR-triggered NMDAR depression start in the millisecond range; NMDAR/phosphatase LTD, endocannabinoid t-LTD, depotentiation, heterosynaptic and tag-related depression start at seconds to minutes; BCM metaplasticity, sleep renormalization and synaptic scaling start at tens of minutes to hours; protein turnover runs from hours (activity-driven degradation) to weeks (basal turnover); pruning and active forgetting start at days and extend to a year.](figures/downscaling_timescale_axis.png)
 
 *Fig. D1. Downscaling mechanisms on the log time axis of model Fig. 1, ordered
 by onset (ties broken by end), as in Fig. 1. A bar's position marks onset and its
-length marks characteristic duration. The grey top row, U1 neurotransmission (~0.5–5 ms), is an upscaling
-process shown only as a time reference, as in the model document's timescale figure. Dotted tails
+length marks characteristic duration. The warm top row, U1 neurotransmission (~0.5–5 ms), is an upscaling
+process shown only as a time reference. Each downscaling pathway has its own cold colour; upscaling
+processes use hot colours in every timescale figure. Spans and order are shared with model Fig. 1
+(`plasticity_timescales.py`). Dotted tails
 are recurring or extended effects. Spans are order-of-magnitude summaries of the
 references below, not fitted values. Regenerate with
 `python3 figures/make_downscaling_timescale_axis.py`.*
@@ -52,20 +54,62 @@ conditions before use.
 | # | Molecular pathway | Timescale | Sensor | Effector | Site | Rule it implements | Model hook |
 |---|---|---|---|---|---|---|---|
 | 1 | Vesicle-pool depletion | 10 ms–10 s | presynaptic spike → VGCC Ca²⁺ | depletion of the readily releasable pool | pre | use-dependent (frequency) depression | STP (S0–S3), TM depression term |
+| 3 | SWR-triggered NMDAR-dependent depression | ripple 40–100 ms, effect hours, recurs over days | postsynaptic NMDAR during SWR bursts | AMPAR weakening (downstream not resolved) | post | state-gated depression of non-replayed inputs | model §3 replay |
 | 2 | Presynaptic GPCR inhibition | 50 ms–min (tonic: hours) | A1R, GABA_B, group II/III mGluR (G_i/o) | Gβγ inhibition of VGCCs and release machinery → lower P_r | pre | neuromodulatory / tonic gain control | scaling of TM `U`, implementation §7.2 |
-| 3 | SWR-triggered NMDAR-dependent depression | ripple 100 ms, effect hours, recurs over days | postsynaptic NMDAR during SWR bursts | AMPAR weakening (downstream not resolved) | post | state-gated depression of non-replayed inputs | model §3 replay |
 | 4a | NMDAR → calcineurin/PP1 LTD | induction s–min, expression hours | moderate postsynaptic NMDAR Ca²⁺ | calcineurin → PP1; GluA1-S845 dephosphorylation; AMPAR endocytosis | post | rate-dependent LTD (low-frequency) | low-Ca branch of `g_Ca(V_seg)`, model §2.1 |
 | 4b | Endocannabinoid → CB1 t-LTD | induction s–min, expression hours | postsynaptic mGluR + VGCC Ca²⁺ → eCB; presynaptic CB1 + NMDAR coincidence | lower P_r (presynaptic calcineurin in CA1) | pre (induced post) | STDP depression (post-before-pre) | negative STDP lobe, implementation §7.5; scaling of `U` |
 | 5 | PP1-mediated depotentiation | window 1 min–1 hr | NMDAR Ca²⁺ + extracellular adenosine (A1R) after LFS | PP1 reverses CaMKII/PKA phosphorylation; AMPAR removal | post | time-limited reversal of recent LTP | active reset of the model §2 tag |
 | 6 | IP3R/calcineurin heterosynaptic depression | min–hours | neighbour potentiation → group I mGluR, IP3R Ca²⁺ release | calcineurin → shrinkage of inactive spines, AMPAR loss | post (unstimulated synapses) | heterosynaptic normalization | per-segment conservation (`V_seg` unit) |
 | 7 | mGluR5 → local-translation LTD | min–1 day | group I mGluR (G_q) | local translation of Arc, STEP, MAP1B → AMPAR endocytosis | post | homosynaptic, protein-synthesis-dependent LTD | PRP pool, model §2 |
-| 8 | Constitutive GluA2 endocytosis (E-LTP decay) | τ ≈ 1–4 hr | none: absence of capture | removal of inserted GluA2-AMPARs | post | decay of unconsolidated LTP | τ_tag decay in Fig. 2 |
 | 9 | PRP competition | 30 min–8 hr | none: finite resource | limited PRPs (synthesis vs proteasomal degradation) | post (cell-wide pool) | competition for consolidation | capture threshold, model §2 |
 | 10 | NMDAR subunit (GluN2A/2B) threshold shift | 30 min–days | integrated postsynaptic activity history | GluN2A/GluN2B ratio change | post | BCM sliding threshold | moves θ_p of `g_Ca` |
 | 11 | Homer1a–mGluR5 sleep scaling-down | hours, each sleep cycle | sleep state: falling noradrenaline, rising adenosine → Homer1a | ligand-independent mGluR5 signalling → GluA1 dephosphorylation, AMPAR removal | post | SHY (wake potentiation, sleep renormalization) | global downscaling between replay epochs |
+| 8 | Constitutive GluA2 endocytosis (E-LTP decay) | early-LTP under 3 h; erodes established memory over weeks | none: absence of capture | removal of inserted GluA2-AMPARs | post | decay of unconsolidated LTP | τ_tag decay in Fig. 2 |
+| 14 | Ubiquitin–proteasome degradation and protein turnover | hours (activity-driven) to days–weeks (basal) | NMDAR Ca²⁺ or sustained activity → E3 ligases (e.g. Mdm2); basal turnover has no sensor | proteasomal degradation of PSD proteins (PSD-95, scaffolds); replacement of the proteins holding a stored weight | post (and the PRP pool) | homeostatic PSD remodelling; contribution to LTD; loss of unmaintained weight | turnover and maintenance of `w_cap`; degraded constraint on capture |
 | 12 | CaMKIV/TNFα synaptic scaling | 12 hr–days | somatic Ca²⁺ → CaMKIV → transcription; glial TNFα | multiplicative change in synaptic AMPARs (Arc-dependent endocytosis) | post (and pre: P_r) | firing-rate homeostasis | implementation §7.2 weight decay |
 | 13 | Complement/microglial pruning; Rac1/cofilin forgetting | days–months | C1q/C3 deposition at weak synapses | microglial CR3 phagocytosis; actin disassembly | whole synapse | structural forgetting | removal of uncaptured traces |
-| 14 | Ubiquitin–proteasome degradation and protein turnover | hours (activity-driven) to days–weeks (basal) | NMDAR Ca²⁺ or sustained activity → E3 ligases (e.g. Mdm2); basal turnover has no sensor | proteasomal degradation of PSD proteins (PSD-95, scaffolds); replacement of the proteins holding a stored weight | post (and the PRP pool) | homeostatic PSD remodelling; contribution to LTD; loss of unmaintained weight | turnover and maintenance of `w_cap`; degraded constraint on capture |
+
+
+Rows, sections and Fig. D1 are sorted by onset, then by end (#1, #3, #2, #4a, #4b, #5, #6, #7, #9, #10, #11, #8, #14, #12, #13). The numbers are kept as
+identifiers, so they no longer run in order.
+
+## Plausibility in the healthy adult hippocampus
+
+Most of the evidence above comes from juvenile slices, cultures or other brain areas. This table rates each pathway for a
+healthy adult rodent CA1 (or hippocampus when CA1 data are missing). **Established**: shown in adult hippocampus under
+physiological conditions. **Likely**: shown in mature but not adult animals. **Conditional**: shown in adults, but only
+in a particular state or protocol, or only in another hippocampal area. **Uncertain**: no adult hippocampal evidence in
+our sources. **Developmental**: present in juveniles and lost in adults. Ratings use abstracts, not full texts.
+
+| # | Adult rating | Adult hippocampal evidence | Caveat |
+|---|---|---|---|
+| 1 | Established | Depletion during high-frequency trains at adult SC and interneuron synapses; the STP values in `params.py` are rat data. | At low rates SC→PYR facilitates on balance; depletion dominates only in bursts. |
+| 3 | Conditional | Adult-stage in vivo mouse data: ripples during slow-wave states trigger NMDAR-dependent, pathway-specific depression, and silencing ripples prevents it (Norimoto 2018). | One study; a grant report on the same work says the depression hits immature (recently formed) synapses selectively. The effector is unknown. |
+| 2 | Established | Tonic and activity-released adenosine inhibits SC release through A1R in rat hippocampus (Mitchell, Lupica & Dunwiddie 1993). | The tonic level depends on slice conditions in vitro and on sleep pressure in vivo. |
+| 4a | Conditional | LFS-LTD shrinks with age: about −45% before 2 weeks against −20% at 5 weeks in rat CA1 (Dudek & Bear 1993). In adult rats in vivo it is weak, but exploring a novel environment facilitates it (Manahan-Vaughan & Braunewell 1999). | Needs a permissive state (novelty, neuromodulation). Juvenile slice magnitudes overstate the adult effect. |
+| 4b | Developmental | Presynaptic t-LTD at mouse CA3→CA1 is lost in the fourth postnatal week and returns when A1Rs are blocked (Pérez-Rodríguez 2019). Adult rat CA1 population data show depression for post-before-pre at 20 ms (Pang 2019). | The adult t-LTD mechanism is not established. Do not model it as eCB/CB1 for adult without a source. |
+| 5 | Established | Robust in adult rat slices (Staubli & Lynch 1990). In vivo, exploring a novel, non-stressful environment fully and persistently reverses early-LTP in CA1 (Xu, Anwyl & Rowan 1998). | The reversal window depends on protocol and preparation. |
+| 6 | Uncertain | CA1 evidence comes from slice cultures (Oh 2015). Adult in vivo coordination is from visual cortex (El-Boustani 2018), and weight conservation from amygdala (Royer & Paré 2003). | No adult CA1 measurement in our sources. |
+| 7 | Likely | mGluR-LTD matures from a presynaptic, synthesis-independent form (P8–15) into a postsynaptic, protein-synthesis-dependent one with AMPAR loss (P21–35 rats; Nosyreva & Huber 2005). | The oldest animals in that study are adolescent, not adult. The role of the proteasome is disputed (D14). |
+| 9 | Conditional | Competition between pathways is shown in rat CA1 slices only when protein synthesis is reduced (Fonseca 2004). | In healthy tissue it would need demand that exceeds a compartment's PRP supply; this is not shown. |
+| 10 | Conditional | A BCM-like heterosynaptic rise in the LTP threshold, lasting 7–35 days, is shown in awake adult rats, but in dentate gyrus (Abraham et al. 2001). | The GluN2A/2B substrate comes from juvenile visual cortex (Philpot 2001). CA1 and the adult mechanism are not shown. |
+| 11 | Conditional | Adult mice: Homer1a-driven scaling-down of forebrain synapses during sleep (Diering 2017). GluA1 is higher in wake than in sleep in rat cortex and hippocampus (Vyazovskiy 2008). | SHY remains debated; large synapses are spared in cortex (de Vivo 2017). |
+| 8 | Established | Adult rats: blocking GluA2 removal prevents natural forgetting (Migues 2016), and blocking endocytosis turns decaying LTP into non-decaying LTP (Dong 2015). | None specific to the adult. |
+| 14 | Established / uncertain | Basal turnover is universal: synaptic protein half-lives run from under a day to weeks, with long-lived synaptic proteins in mouse (Dörrbaum 2018; Heo 2018). | The activity-driven UPS role in LTD comes from cultures and conflicts between studies (Colledge 2003; Hou 2006; Citri 2009). |
+| 12 | Uncertain | Mostly cultured and organotypic preparations (Turrigiano 1998; Ibata 2008; Kim & Tsien 2008). | No adult in vivo CA1 evidence in our sources. Adult in vivo scaling is reported for cortex, not checked here. |
+| 13 | Established | Adult mouse hippocampus: depleting microglia or inhibiting complement prevents forgetting of contextual fear memory (Wang 2020). | Rac1 forgetting is from *Drosophila*; neurogenesis lies outside CA1. |
+
+Six pathways are established in the adult (1, 2, 5, 8, 13 and basal turnover in 14). Five are conditional (3, 4a, 9, 10,
+11), one is likely (7), two are uncertain (6, 12) and one is developmental (4b). For a model of the healthy adult
+hippocampus, 4b should be off by default, and 4a, 9 and 10 should be gated by a stated state (novelty, limited
+synthesis, prior activity) rather than always on.
+
+**References added for this rating** (checked against PubMed, PMC or publisher records, abstract level):
+- Dudek SM, Bear MF (1993). Bidirectional long-term modification of synaptic effectiveness in the adult and immature hippocampus. *J Neurosci* 13:2910–2918.
+- Manahan-Vaughan D, Braunewell KH (1999). Novelty acquisition is associated with induction of hippocampal long-term depression. *PNAS* 96:8739–8744.
+- Xu L, Anwyl R, Rowan MJ (1998). Spatial exploration induces a persistent reversal of long-term potentiation in rat hippocampus. *Nature* 394:891–894. doi:10.1038/29783
+- Nosyreva ED, Huber KM (2005). Developmental switch in synaptic mechanisms of hippocampal metabotropic glutamate receptor-dependent long-term depression. *J Neurosci* 25:2992–3001.
+- Abraham WC, Mason-Parker SE, Bear MF, Webb S, Tate WP (2001). Heterosynaptic metaplasticity in the hippocampus in vivo: a BCM-like modifiable threshold for LTP. *PNAS* 98:10924–10929.
 
 ---
 
@@ -87,25 +131,6 @@ bursts, including the compressed sequences of SWR replay.
 - Tsodyks MV, Markram H (1997). The neural code between neocortical pyramidal neurons depends on neurotransmitter release probability. *PNAS* 94:719–723.
 - Zucker RS, Regehr WG (2002). Short-term synaptic plasticity. *Annu Rev Physiol* 64:355–405.
 - Dobrunz LE, Stevens CF (1997). Heterogeneity of release probability, facilitation, and depletion at central synapses. *Neuron* 18:995–1008.
-
-## 2. Presynaptic GPCR inhibition (adenosine A1, GABA_B, group II/III mGluR)
-
-**Pathway.** G_i/o-coupled receptors → Gβγ inhibition of N/P/Q-type VGCCs and of the release
-machinery → lower release probability (presynaptic). **Rule:** neuromodulatory or tonic gain
-control. This is state-dependent, not activity-pattern-dependent.
-
-**Mechanism.** G-protein-coupled presynaptic receptors lower release probability.
-Extracellular adenosine builds up with prolonged wake and metabolic load, which
-ties this mechanism to sleep pressure. That makes it a tonic, hours-scale
-downscaling of Schaffer-collateral release.
-
-**Spec hook.** The separate neuromodulatory input to the synaptic area (implementation §7.2).
-Expressed as a scaling of the TM parameter U.
-
-**References.**
-- Dunwiddie TV, Masino SA (2001). The role and regulation of adenosine in the central nervous system. *Annu Rev Neurosci* 24:31–55.
-- Porkka-Heiskanen T et al. (1997). Adenosine: a mediator of the sleep-inducing effects of prolonged wakefulness. *Science* 276:1265–1268.
-- Davies CH, Starkey SJ, Pozza MF, Collingridge GL (1991). GABA_B autoreceptors regulate the induction of LTP. *Nature* 349:609–611.
 
 ## 3. SWR-triggered NMDAR-dependent depression
 
@@ -134,6 +159,25 @@ potentiation.
 - Grosmark AD, Mizuseki K, Pastalkova E, Diba K, Buzsáki G (2012). REM sleep reorganizes hippocampal excitability. *Neuron* 75:1001–1007.
 - González-Rueda A, Pedrosa V, Feord RC, Clopath C, Paulsen O (2018). Activity-dependent downscaling of subthreshold synaptic inputs during slow-wave-sleep-like activity in vivo. *Neuron* 97:1244–1252. doi:10.1016/j.neuron.2018.01.047 (cortex)
 - Lewis PA, Durrant SJ (2011). Overlapping memory replay during sleep builds cognitive schemata. *Trends Cogn Sci* 15:343–351.
+
+## 2. Presynaptic GPCR inhibition (adenosine A1, GABA_B, group II/III mGluR)
+
+**Pathway.** G_i/o-coupled receptors → Gβγ inhibition of N/P/Q-type VGCCs and of the release
+machinery → lower release probability (presynaptic). **Rule:** neuromodulatory or tonic gain
+control. This is state-dependent, not activity-pattern-dependent.
+
+**Mechanism.** G-protein-coupled presynaptic receptors lower release probability.
+Extracellular adenosine builds up with prolonged wake and metabolic load, which
+ties this mechanism to sleep pressure. That makes it a tonic, hours-scale
+downscaling of Schaffer-collateral release.
+
+**Spec hook.** The separate neuromodulatory input to the synaptic area (implementation §7.2).
+Expressed as a scaling of the TM parameter U.
+
+**References.**
+- Dunwiddie TV, Masino SA (2001). The role and regulation of adenosine in the central nervous system. *Annu Rev Neurosci* 24:31–55.
+- Porkka-Heiskanen T et al. (1997). Adenosine: a mediator of the sleep-inducing effects of prolonged wakefulness. *Science* 276:1265–1268.
+- Davies CH, Starkey SJ, Pozza MF, Collingridge GL (1991). GABA_B autoreceptors regulate the induction of LTP. *Nature* 349:609–611.
 
 ## 4a. Postsynaptic NMDAR → calcineurin/PP1 LTD
 
@@ -260,27 +304,6 @@ potentiation for capture.
 - Huber KM, Kayser MS, Bear MF (2000). Role for rapid dendritic protein synthesis in hippocampal mGluR-dependent long-term depression. *Science* 288:1254–1257.
 - Waung MW, Pfeiffer BE, Nosyreva ED, Ronesi JA, Huber KM (2008). Rapid translation of Arc/Arg3.1 selectively mediates mGluR-dependent LTD through persistent increases in AMPAR endocytosis rate. *Neuron* 59:84–97.
 
-## 8. Constitutive GluA2 endocytosis (passive E-LTP and tag decay)
-
-**Pathway.** No sensor is needed. Without capture, constitutive endocytosis of GluA2-containing
-AMPARs removes the extra receptors (postsynaptic). It is blocked by the GluA2-3Y interference
-peptide. **Rule:** decay of unconsolidated potentiation, the default fate of a trace.
-
-**Mechanism.** Without capture, E-LTP decays over 1–3 hr as inserted AMPARs are
-removed by constitutive, GluA2-dependent endocytosis. Even consolidated memories
-show an ongoing, decay-like forgetting process that blocking GluA2 removal
-prevents.
-
-**Spec hook.** τ_tag decay in model Fig. 2, and the volatile-memristor
-relaxation of implementation §5.2. This is the baseline against which capture is measured.
-
-**References.**
-- Frey U, Morris RGM (1997). Synaptic tagging and long-term potentiation. *Nature* 385:533–536.
-- Redondo RL, Morris RGM (2011). Making memories last: the synaptic tagging and capture hypothesis. *Nat Rev Neurosci* 12:17–30.
-- Migues PV, Liu L, Archbold GEB, et al. (2016). Blocking synaptic removal of GluA2-containing AMPA receptors prevents the natural forgetting of long-term memories. *J Neurosci* 36:3481–3494. doi:10.1523/JNEUROSCI.3333-15.2016
-- Hardt O, Nader K, Nadel L (2013). Decay happens: the role of active forgetting in memory. *Trends Cogn Sci* 17:111–120.
-- Pastalkova E, Serrano P, Pinkhasova D, et al. (2006). Storage of spatial information by the maintenance mechanism of LTP. *Science* 313:1141–1144. (PKMζ maintenance. Contested by Volk LJ et al. 2013, *Nature* 493:420–423, and Lee AM et al. 2013, *Nature* 493:416–419.)
-
 ## 9. Competition for plasticity-related proteins
 
 **Pathway.** No sensor is needed: this is a finite resource. Protein synthesis and proteasomal
@@ -347,6 +370,67 @@ consolidation loop. Each sleep cycle is a dotted repeat in Fig. D1.
 - Diering GH, Nirujogi RS, Roth RH, et al. (2017). Homer1a drives homeostatic scaling-down of excitatory synapses during sleep. *Science* 355:511–515.
 - Li W, Ma L, Yang G, Gan WB (2017). REM sleep selectively prunes and maintains new synapses in development and learning. *Nat Neurosci* 20:427–437. doi:10.1038/nn.4479 (motor cortex)
 
+## 8. Constitutive GluA2 endocytosis (passive E-LTP and tag decay)
+
+**Pathway.** No sensor is needed. Without capture, constitutive endocytosis of GluA2-containing
+AMPARs removes the extra receptors (postsynaptic). It is blocked by the GluA2-3Y interference
+peptide. **Rule:** decay of unconsolidated potentiation, the default fate of a trace.
+
+**Mechanism.** Without capture, E-LTP decays over 1–3 hr as inserted AMPARs are
+removed by constitutive, GluA2-dependent endocytosis. Even consolidated memories
+show an ongoing, decay-like forgetting process that blocking GluA2 removal
+prevents.
+
+**Spec hook.** τ_tag decay in model Fig. 2, and the volatile-memristor
+relaxation of implementation §5.2. This is the baseline against which capture is measured.
+
+**References.**
+- Frey U, Morris RGM (1997). Synaptic tagging and long-term potentiation. *Nature* 385:533–536.
+- Redondo RL, Morris RGM (2011). Making memories last: the synaptic tagging and capture hypothesis. *Nat Rev Neurosci* 12:17–30.
+- Migues PV, Liu L, Archbold GEB, et al. (2016). Blocking synaptic removal of GluA2-containing AMPA receptors prevents the natural forgetting of long-term memories. *J Neurosci* 36:3481–3494. doi:10.1523/JNEUROSCI.3333-15.2016
+- Hardt O, Nader K, Nadel L (2013). Decay happens: the role of active forgetting in memory. *Trends Cogn Sci* 17:111–120.
+- Pastalkova E, Serrano P, Pinkhasova D, et al. (2006). Storage of spatial information by the maintenance mechanism of LTP. *Science* 313:1141–1144. (PKMζ maintenance. Contested by Volk LJ et al. 2013, *Nature* 493:420–423, and Lee AM et al. 2013, *Nature* 493:416–419.)
+
+## 14. Ubiquitin–proteasome degradation and protein turnover
+
+**Pathway.** Two parts. *Basal turnover* has no sensor: the proteins that hold a stored weight
+are degraded and replaced over days to weeks. *Activity-driven degradation*: NMDAR Ca²⁺ or
+sustained activity → E3 ubiquitin ligases (e.g. Mdm2) → ubiquitination of postsynaptic density
+proteins → proteasomal degradation → fewer synaptic AMPAR slots (postsynaptic). **Rule:**
+homeostatic remodelling of the PSD, a contribution to LTD, and loss of any weight that is not
+actively maintained.
+
+**Mechanism.** In rat hippocampal cultures, protein half-lives range from under a day to more
+than 20 days. In mouse synapses, a set of long-lived proteins persists for weeks or longer, and
+synaptic proteins turn over more slowly than cytosolic ones. A memory therefore outlives its
+molecules only if something rebuilds it (Crick's turnover problem). The candidate answers are a
+self-maintaining kinase switch or recurring protein synthesis. Activity changes the composition
+of the PSD in both directions through the ubiquitin–proteasome system. NMDAR activation leads
+Mdm2 to ubiquitinate PSD-95, which is then degraded. Blocking this prevents NMDA-induced AMPAR
+endocytosis and reduces LTD. Later work conflicts: proteasome inhibition was reported to leave
+NMDAR-LTD unchanged and to enhance mGluR-LTD (Citri et al. 2009). Proteasomal degradation of
+FMRP was reported to be needed for mGluR-LTD (Hou et al. 2006). Degradation is also needed for
+late-LTP: blocking it disrupts late-LTP, and blocking synthesis as well restores it (Fonseca et
+al. 2006, under #9).
+
+**Spec hook.** Captured weight `w_cap`, which the model currently holds stable. Turnover adds a
+decay term with time constant τ_turn (days), and maintenance can be added as a synthesis-gated
+bistable term. On the PRP side, a synthesised constraint that the proteasome degrades would
+reproduce Fonseca et al. 2006. Equations 16–17 of
+[`docs/plasticity_up_down_model_2026-11-06.md`](docs/plasticity_up_down_model_2026-11-06.md)
+give the proposed forms. A τ_turn of days needs a stated compression factor in any short run.
+
+**References.**
+- Crick F (1984). Memory and molecular turnover. *Nature* 312:101. (News and Views)
+- Lisman JE (1985). A mechanism for memory storage insensitive to molecular turnover: a bistable autophosphorylating kinase. *PNAS* 82:3055–3057. doi:10.1073/pnas.82.9.3055
+- Miller P, Zhabotinsky AM, Lisman JE, Wang XJ (2005). The stability of a stochastic CaMKII switch: dependence on the number of enzyme molecules and protein turnover. *PLoS Biol* 3:e107. doi:10.1371/journal.pbio.0030107
+- Ehlers MD (2003). Activity level controls postsynaptic composition and signaling via the ubiquitin-proteasome system. *Nat Neurosci* 6:231–242. (cultured rat hippocampal neurons)
+- Colledge M, Snyder EM, Crozier RA, et al. (2003). Ubiquitination regulates PSD-95 degradation and AMPA receptor surface expression. *Neuron* 40:595–607.
+- Hou L, Antion MD, Hu D, et al. (2006). Dynamic translational and proteasomal regulation of fragile X mental retardation protein controls mGluR-dependent long-term depression. *Neuron* 51:441–454. (proteasome claim checked only through a secondary excerpt)
+- Citri A, Soler-Llavina G, Bhattacharyya S, Malenka RC (2009). N-methyl-D-aspartate receptor- and metabotropic glutamate receptor-dependent long-term depression are differentially regulated by the ubiquitin-proteasome system. *Eur J Neurosci*. (not yet checked)
+- Dörrbaum AR, Kochen L, Langer JD, Schuman EM (2018). Local and global influences on protein turnover in neurons and glia. *eLife* 7:e34202. doi:10.7554/eLife.34202 (rat hippocampal cultures)
+- Heo S, Diering GH, Na CH, et al. (2018). Identification of long-lived synaptic proteins by proteomic analysis of synaptosome protein turnover. *PNAS* 115:E3827–E3836. doi:10.1073/pnas.1720956115 (mouse)
+
 ## 12. CaMKIV/TNFα homeostatic synaptic scaling
 
 **Pathway.** Sustained change in firing → somatic Ca²⁺ → CaMKIV → transcription (Ibata et al.
@@ -406,46 +490,6 @@ model §3. Neurogenesis acts in DG, outside the minimal CA1 circuit.
 - Shuai Y, Lu B, Hu Y, Wang L, Sun K, Zhong Y (2010). Forgetting is regulated through Rac activity in *Drosophila*. *Cell* 140:579–589.
 - Davis RL, Zhong Y (2017). The biology of forgetting: a perspective. *Neuron* 95:490–503.
 - Akers KG, Martinez-Canabal A, Restivo L, et al. (2014). Hippocampal neurogenesis regulates forgetting during adulthood and infancy. *Science* 344:598–602.
-
-## 14. Ubiquitin–proteasome degradation and protein turnover
-
-**Pathway.** Two parts. *Basal turnover* has no sensor: the proteins that hold a stored weight
-are degraded and replaced over days to weeks. *Activity-driven degradation*: NMDAR Ca²⁺ or
-sustained activity → E3 ubiquitin ligases (e.g. Mdm2) → ubiquitination of postsynaptic density
-proteins → proteasomal degradation → fewer synaptic AMPAR slots (postsynaptic). **Rule:**
-homeostatic remodelling of the PSD, a contribution to LTD, and loss of any weight that is not
-actively maintained.
-
-**Mechanism.** In rat hippocampal cultures, protein half-lives range from under a day to more
-than 20 days. In mouse synapses, a set of long-lived proteins persists for weeks or longer, and
-synaptic proteins turn over more slowly than cytosolic ones. A memory therefore outlives its
-molecules only if something rebuilds it (Crick's turnover problem). The candidate answers are a
-self-maintaining kinase switch or recurring protein synthesis. Activity changes the composition
-of the PSD in both directions through the ubiquitin–proteasome system. NMDAR activation leads
-Mdm2 to ubiquitinate PSD-95, which is then degraded. Blocking this prevents NMDA-induced AMPAR
-endocytosis and reduces LTD. Later work conflicts: proteasome inhibition was reported to leave
-NMDAR-LTD unchanged and to enhance mGluR-LTD (Citri et al. 2009). Proteasomal degradation of
-FMRP was reported to be needed for mGluR-LTD (Hou et al. 2006). Degradation is also needed for
-late-LTP: blocking it disrupts late-LTP, and blocking synthesis as well restores it (Fonseca et
-al. 2006, under #9).
-
-**Spec hook.** Captured weight `w_cap`, which the model currently holds stable. Turnover adds a
-decay term with time constant τ_turn (days), and maintenance can be added as a synthesis-gated
-bistable term. On the PRP side, a synthesised constraint that the proteasome degrades would
-reproduce Fonseca et al. 2006. Equations 16–17 of
-[`docs/plasticity_up_down_model_2026-11-06.md`](docs/plasticity_up_down_model_2026-11-06.md)
-give the proposed forms. A τ_turn of days needs a stated compression factor in any short run.
-
-**References.**
-- Crick F (1984). Memory and molecular turnover. *Nature* 312:101. (News and Views)
-- Lisman JE (1985). A mechanism for memory storage insensitive to molecular turnover: a bistable autophosphorylating kinase. *PNAS* 82:3055–3057. doi:10.1073/pnas.82.9.3055
-- Miller P, Zhabotinsky AM, Lisman JE, Wang XJ (2005). The stability of a stochastic CaMKII switch: dependence on the number of enzyme molecules and protein turnover. *PLoS Biol* 3:e107. doi:10.1371/journal.pbio.0030107
-- Ehlers MD (2003). Activity level controls postsynaptic composition and signaling via the ubiquitin-proteasome system. *Nat Neurosci* 6:231–242. (cultured rat hippocampal neurons)
-- Colledge M, Snyder EM, Crozier RA, et al. (2003). Ubiquitination regulates PSD-95 degradation and AMPA receptor surface expression. *Neuron* 40:595–607.
-- Hou L, Antion MD, Hu D, et al. (2006). Dynamic translational and proteasomal regulation of fragile X mental retardation protein controls mGluR-dependent long-term depression. *Neuron* 51:441–454. (proteasome claim checked only through a secondary excerpt)
-- Citri A, Soler-Llavina G, Bhattacharyya S, Malenka RC (2009). N-methyl-D-aspartate receptor- and metabotropic glutamate receptor-dependent long-term depression are differentially regulated by the ubiquitin-proteasome system. *Eur J Neurosci*. (not yet checked)
-- Dörrbaum AR, Kochen L, Langer JD, Schuman EM (2018). Local and global influences on protein turnover in neurons and glia. *eLife* 7:e34202. doi:10.7554/eLife.34202 (rat hippocampal cultures)
-- Heo S, Diering GH, Na CH, et al. (2018). Identification of long-lived synaptic proteins by proteomic analysis of synaptosome protein turnover. *PNAS* 115:E3827–E3836. doi:10.1073/pnas.1720956115 (mouse)
 
 ---
 
