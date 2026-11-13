@@ -13,6 +13,11 @@ recording conditions: species, age, [Ca²⁺]ₒ, temperature) before it goes in
 3. Kim J, Park M (2025). Systems memory consolidation during sleep: oscillations, neuromodulators,
    and synaptic remodeling. *BMB Rep* 58(10):425–436. doi:10.5483/BMBRep.2025-0033. PMID 40962324.
    PMCID PMC12576410.
+4. Sajikumar S, Abel T (eds.) (2024). *Synaptic Tagging and Capture: From Synapses to Behavior*,
+   2nd ed. Springer. doi:10.1007/978-3-031-54864-2. Chapters 1, 7, 8, 12, 14, 15, 19 and 23 read.
+   Cited as "S&A p. n".
+5. Luboeinski J, Tetzlaff C (2021), *Commun Biol* 4:275; Lehr AB, Luboeinski J, Tetzlaff C (2022),
+   *Sci Rep* 12:17772. Methods and parameter tables read. Cited as "L&T 2021" and "Lehr 2022".
 
 ## The STC hypothesis in one paragraph
 
@@ -216,6 +221,180 @@ not to S4–S6 directly. It gives a reason to gate PRP synthesis or capture by n
 (dopamine, noradrenaline), and a reason to protect tagged or captured synapses from global
 downscaling.
 
+## 4. Sajikumar & Abel (eds., 2024): *Synaptic Tagging and Capture*, 2nd ed.
+
+Springer. doi:10.1007/978-3-031-54864-2. A 23-chapter book; the chapters relevant to the model
+were read in full text. Pages are the printed book pages.
+
+### Timing of tag and PRPs
+
+- **Ch. 19** (Viola, Ballarini & Moncada, p. 380):
+  - Frey & Morris (1998) measured a tag **half-life of ~30 min** and a PRP half-life of
+    **1 to 2 h**.
+  - These are the first explicit half-lives in this review. They correspond to τ_tag ≈ 43 min and
+    τ_P ≈ 1.4–2.9 h (τ = t½ / ln 2).
+- **Ch. 1** (Prodan & Morris, p. 30): STC studies broadly agree that tags last approximately 1 h
+  at 32 °C. This is the only temperature given for a tag lifetime.
+- **Behavioural tags last longer:**
+  - From the BT experiments as a whole, learning tags have a half-life of 30 min to 2–3 h,
+    depending on the task (Ch. 19, p. 380).
+  - Inhibitory avoidance (IA): a 5-min novel open field promotes long-term memory about 1 h before
+    or after weak training. It does not between 30 min before and the moment of training (Moncada &
+    Viola 2007; Ch. 19, p. 368). The window is symmetric, as in slices.
+  - Spatial object recognition: the window is 1 h before to 2 h after.
+  - Conditioned taste aversion: 1 h before or 2.5 h after.
+  - Contextual fear: 3 h before to 1 h after (Chen et al. 2020).
+- **A second, late window** (Ch. 19, p. 381): memory persistence at 7 days needs a BDNF- and
+  protein-synthesis-dependent phase about 12 h after training (Bekinschtein et al. 2007). The
+  authors propose a late "maintenance tag".
+- **Sleep:** sleep deprivation impairs late-LTP, disrupts STC, and blocks behavioural tagging of
+  weak IA by novelty (Wong et al. 2020; Ch. 19, p. 377).
+
+### Where capture can happen, and competition
+
+- **Compartments (Ch. 7,** Alarcon, p. 144**):**
+  - Capture works between two inputs on apical dendrites, and between two on basal dendrites.
+  - It fails between an apical and a basal input (Alarcon et al. 2006).
+  - LTD is compartmentalised too.
+  - So the tag/PRP unit is a dendritic compartment, not necessarily the whole cell.
+- **Competition (Ch. 8,** Fonseca, p. 169**):**
+  - When PRPs are limited, tagged groups compete. This was shown with protein-synthesis inhibitors
+    and also with natural patterns that only limit the initial pool (Fonseca et al. 2004).
+  - Reactivating one previously activated group adds tags and puts the other groups under
+    pressure.
+  - Competition is proportional to the potentiation at the winning input. Tag "activity" scales
+    with activation, and stronger tags capture more.
+
+### Dopamine and serotonin as the PRP gate
+
+- **Dopamine (Ch. 15,** Navakkode, p. 294**):** D1/D5 receptors enable cellular consolidation by
+  inducing protein synthesis through cAMP/PKA. They act as a gate.
+  - L-LTP is impaired in D1-receptor knockout mice.
+  - A D1/D5 agonist alone gives slow-onset potentiation that lasts ~6 h *in vitro* and takes part
+    in associativity.
+- **Two dopamine systems (Ch. 14,** Takeuchi, pp. 272–273**):**
+  - **LC → hippocampus, the "grace period":** optogenetic activation of LC-TH⁺ (not VTA-TH⁺)
+    neurons mimics novelty. It makes spatial memories encoded close in time persist, and the effect
+    is sensitive to D1/D5 (Takeuchi et al. 2016). This works over time, across memories: a
+    cell-wide PRP gate.
+  - **VTA → hippocampus, pattern-specific replay:** stimulating VTA-TH⁺ axons while the animal
+    explores a novel environment enhances later SWR reactivation, and memory persistence. Only the
+    activity patterns present *during* the stimulation benefit, not those immediately before
+    (McNamara et al. 2014). This is a pattern-specific gate that acts through replay.
+- **Serotonin (Ch. 12,** Bin Ibrahim & Sajikumar, p. 242**):**
+  - In rat CA2, weak low-frequency stimulation that alone gives transient LTD becomes long-lasting
+    LTD when paired with serotonin.
+  - This serotonin-facilitated LTD takes part in tagging and capture with a second input, and in
+    *cross*-tagging: weak LTP in another input becomes lasting (Benoy et al. 2022).
+  - This is the first source in this review for a role of 5-HT in STC. It points to LTD rather
+    than LTP, and comes from CA2, not CA3.
+
+### Reactivation and reconsolidation (Ch. 12, pp. 246–248)
+
+- **A reactivated strong memory supplies PRPs:** briefly re-exposing an animal to a fear-conditioned
+  context right after weak spatial object recognition training makes the weak memory persist
+  (Cassini et al. 2013).
+  - It needs the strong memory to become labile: blocking L-type calcium channels, or shortening
+    re-exposure to 90 s, abolishes the effect.
+  - It needs NMDA receptors during the weak task, to set the tag.
+- **Reactivated memories carry tags again** and need PRPs to reconsolidate. Blocking protein
+  synthesis during reactivation causes loss, unless PRPs were supplied by an earlier strong event
+  (Rabinovich Orlandi et al. 2020).
+- **Proposed:** synapses of a new memory and of a reactivated one compete, winner-take-all
+  (Sajikumar et al. 2014).
+
+### Computational models (Ch. 23, Luboeinski & Tetzlaff, pp. 471–498)
+
+**Common ground** (p. 474):
+
+- All models reproduce the slice data: tag and early LTP/LTD decay over ~1–2 h, and late changes
+  last many hours.
+- All of them, except the compartment models, assume an unlimited PRP pool for the whole neuron.
+
+| Model | Tag | PRP trigger | Notes |
+|---|---|---|---|
+| Clopath et al. 2008 | Three Markov states (neutral/up/down); a tag is the early state | Enough early change, with a dopamine-dependent threshold; PRPs decay over hours | Three needed parts: early weight/tag, PRP, late weight |
+| Barrett et al. 2009 | Six states; early change can occur without a tag | — | Depotentiation and tag reset |
+| Ziegler et al. 2015 | Separate tag variable; weight, tag and scaffold are all bistable | Dopamine only (one value per neuron) | Slow-onset LTP; behavioural tagging in feed-forward fear model, including no consolidation when novelty coincides with the shock |
+| O'Donnell & Sejnowski 2014 | Exponential tag | Alpha-function PRP, local to dendrite | CA3→CA1 feed-forward; weak inputs must share segments with strong ones; clustering |
+| Kastellakis et al. 2016 | Calcium-based | Alpha-function, somatic and/or dendritic | Behavioural tagging; homeostasis |
+| Päpper et al. 2011 | Abstract | — | First recurrent STC network; multi-timescale STC raises storage capacity |
+| Li et al. 2016 → Luboeinski & Tetzlaff 2021, 2022; Lehr et al. 2022 | Early weight beyond a threshold | Summed early change above θ_pro; θ_pro depends on a neuromodulator | Recurrent spiking network; the basis of the algorithm in [stc_replay_algorithm_tinyCA3.md](stc_replay_algorithm_tinyCA3.md) |
+
+**Results relevant to replay:**
+
+- **Consolidation and improvement** (pp. 488–490):
+  - STC consolidates cell assemblies, and recall 8 h later can be *better* than at 10 s.
+  - "Passive" improvement comes from the late weights. "Active" improvement comes from early
+    plasticity during recall.
+- **Neuromodulation acts retroactively** (pp. 490–491):
+  - Low neuromodulator: no consolidation.
+  - Moderate: good recall of the patterns as they were presented (input-defined).
+  - High: the assembly grows to recruit new cells, and recall of self-organised patterns and
+    temporal traces is good.
+  - Neuromodulation works only if it falls within the tag window. Pattern completion peaks with
+    neuromodulation ~60–90 min after learning, as in behavioural tagging.
+- **Interaction between memories** (pp. 491–493):
+  - LTD makes newer assemblies weaken older ones, so the newer ones reactivate spontaneously more
+    often (recency).
+  - Consolidating each assembly before learning the next gives more reactivation and less recency.
+  - A brief priming stimulus raises the early weights and spontaneous reactivation of one assembly
+    for a few hours.
+- **Open points named by the authors** (pp. 494–496):
+  - Tag reset and the partial dissociation between tag and early LTP (as in Ziegler 2015).
+  - Limited, consumed PRP pools and competition.
+  - Separate PRP pools for LTP and LTD (Sajikumar et al. 2005, 2007).
+  - A mix of somatic and dendritic protein synthesis.
+
+## 5. Luboeinski & Tetzlaff (2021); Lehr, Luboeinski & Tetzlaff (2022)
+
+- Luboeinski J, Tetzlaff C (2021). Memory consolidation and improvement by synaptic tagging and
+  capture in recurrent neural networks. *Commun Biol* 4:275. doi:10.1038/s42003-021-01778-y.
+  PMCID PMC7977149.
+- Lehr AB, Luboeinski J, Tetzlaff C (2022). Neuromodulator-dependent synaptic tagging and capture
+  retroactively controls neural coding in spiking neural networks. *Sci Rep* 12:17772.
+  doi:10.1038/s41598-022-22430-7. PMCID PMC9588040.
+
+Read in full text (Methods and Tables 1–2 of the 2021 paper; Methods of the 2022 paper). These
+papers give the only complete, published equation set for STC in a recurrent spiking network.
+
+**Equations** (2021 Eqs. 10–15; 2022 Eqs. 9–10):
+
+```
+w = h + h0·z                                                              (E→E only)
+τ_h dh/dt = 0.1(h0 − h) + γ_p(1 nC − h)Θ[c − θ_p] − γ_d h Θ[c − θ_d] + ξ(t)
+dc/dt     = −c/τ_c + c_pre Σ δ(t − t_pre − t_c,delay) + c_post Σ δ(t − t_post)
+tagged    ⇔ |h − h0| > θ_tag
+τ_z dz/dt = p (1 − z) Θ[(h − h0) − θ_tag] − p (z + 0.5) Θ[(h0 − h) − θ_tag]
+τ_p dp/dt = −p + α Θ[ Σ_j |h_j − h0| − θ_pro ]                          (one p per neuron)
+θ_pro(NM) = 1 / (NM + 0.001)                                              (2022)
+```
+
+**Parameters** (Table 2 of the 2021 paper):
+
+| Parameter | Value | Note |
+|---|---|---|
+| τ_c | 48.8 ms | Graupner & Brunel 2012 fit to slice data |
+| c_pre, c_post | 1, 0.2758 (network: 0.6, 0.1655) | Network values scaled by 0.6 for in vivo [Ca²⁺]ₒ (Higgins et al. 2014) |
+| t_c,delay | 18.8 ms | — |
+| θ_p, θ_d | 3, 1.2 | — |
+| γ_p, γ_d | 1645.6, 313.1 | — |
+| τ_h | 688.4 s | With the 0.1 factor, h relaxes with τ_h/0.1 = 6884 s ≈ 1.9 h |
+| σ_pl | 0.290436 nC s^½ | Noise in plasticity |
+| h0 | 0.420075 nC | — |
+| θ_tag | 0.0840149 nC | = 0.2 h0 |
+| θ_pro | 0.210037 nC | = 0.5 h0 |
+| τ_p, τ_z | 60 min, 60 min | — |
+| α | 1 | — |
+
+**Network and protocol:**
+
+- 1600 excitatory and 400 inhibitory LIF neurons, connection probability 0.1, Δt = 0.2 ms.
+- Learning: 3 pulses of 0.1 s, 0.4 s apart. Recall: one 0.1-s pulse to half of the assembly.
+- Pattern completion is measured as Q = (ν_ans − ν_ctrl)/ν_as.
+- The slow phase is computed without spiking. This is valid because the early weights do not
+  change below ~3 Hz firing (Ch. 23, p. 487).
+
 ## The tagging mechanism, step by step
 
 Assembled from the three reviews. "M&K" is Martin & Kosik 2002, "R" is Rogerson et al. 2014, "K&P" is
@@ -342,7 +521,13 @@ captured changes are then consolidated or pruned:
 | Element | What the three reviews report | Source |
 |---|---|---|
 | Tag | Local, transient, needs no new protein; CaMKII and actin; probably several tags, not one molecule | M&K pp. 815, 819; R p. 163 |
-| Tag lifetime (CA1) | ~1–2 h (M&K); "up to 1 h" (R) | M&K p. 815; R p. 162 |
+| Tag lifetime (CA1) | ~1–2 h (M&K); "up to 1 h" (R); ~1 h at 32 °C (Ch. 1); **half-life ~30 min** (Frey & Morris 1998) | M&K p. 815; R p. 162; S&A pp. 30, 380 |
+| PRP lifetime | **Half-life 1–2 h** (Frey & Morris 1998); τ_p = 60 min in the L&T model | S&A p. 380; L&T 2021 Table 2 |
+| Behavioural tag | Half-life 30 min to 2–3 h, depending on the task; symmetric windows of ~1 h (IA) to 1–2.5 h | S&A pp. 368, 380 |
+| Compartment | Capture within apical or within basal dendrites, not between them | S&A p. 144 |
+| Dopamine systems | LC: grace period across time (cell-wide). VTA: boosts later replay of the patterns present during release (pattern-specific) | S&A pp. 272–273 |
+| Serotonin | Converts weak LTD to late LTD in CA2 and enables cross-tagging | S&A p. 242 (Benoy et al. 2022) |
+| Reactivation | A reactivated strong memory supplies PRPs to a weak one; reactivated memories need PRPs again | S&A pp. 246–248 |
 | Weak → strong window (CA1) | Weak 1–2 h before strong (M&K); up to 1 h before (R) | M&K p. 814; R p. 162 |
 | Strong → weak window (CA1) | Weak <2.5–3 h after strong (M&K); ≥1 h after (R, Fig. 3) | M&K p. 814; R p. 162 |
 | E-LTP / L-LTP decay | 1 train decays after ~1.5 h; 3 trains persist ≥8 h | M&K Fig. 2 |
