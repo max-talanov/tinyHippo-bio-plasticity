@@ -1,7 +1,10 @@
 # Synaptic tagging and capture (STC): a short literature review
 
-**Sources read:** the full texts (PDFs) of the three papers below. Page numbers refer to the journal
-pagination. All three are reviews, so the numbers quoted here are second-hand: each is attributed
+*Restricted to mammalian data: the invertebrate studies (Aplysia, Drosophila, crayfish) discussed in
+the source reviews are left out.*
+
+**Sources read:** the full texts of the sources below. Page numbers refer to the journal or book
+pagination. Most are reviews, so the numbers quoted here are second-hand: each is attributed
 to the primary study the review cites, and must be checked against that primary paper (with its
 recording conditions: species, age, [Ca²⁺]ₒ, temperature) before it goes into `params.py`.
 
@@ -30,14 +33,8 @@ unit of lasting plasticity (Martin & Kosik, pp. 813–815, 819; Rogerson et al.,
 
 ## 1. Martin & Kosik (2002): what is the tag?
 
-### Evidence for tagging (pp. 813–815)
+### Evidence for tagging in rat hippocampus (pp. 814–815)
 
-- ***Aplysia*, one bifurcated sensory neuron contacting two motor neurons** (Martin et al. 1997):
-  - 5 puffs of serotonin (5-HT) on one branch give branch-specific long-term facilitation (LTF) lasting
-    >24 h. It is blocked by actinomycin D (transcription) and by anti-CREB antibody.
-  - 1 puff alone gives only transient facilitation. Given to the other branch, it is converted to
-    LTF if delivered within a time window. The text gives that window as 1–2 h before or 1–4 h after
-    the 5 puffs. Fig. 1c shows capture at 0 h and at 1 h after, and none at 4 h after.
 - **Rat hippocampal slice, CA1, two independent inputs S1/S2** (Frey & Morris 1997, 1998):
   - 1 tetanic train gives LTP that decays after ~1.5 h.
   - 3 trains give LTP that lasts ≥8 h and depends on transcription.
@@ -46,7 +43,8 @@ unit of lasting plasticity (Martin & Kosik, pp. 813–815, 819; Rogerson et al.,
   - Anisomycin during the S1 tetanus does not block persistent LTP in S2. The tag itself is
     protein-synthesis independent (Fig. 2c).
 - **Two temporal features of the tag** (p. 815):
-  - After strong stimulation, the cell can turn transient changes into persistent ones for 1–4 h.
+  - After strong stimulation, the cell can turn transient changes into persistent ones for hours
+    (in rat CA1, a weak input up to 2.5–3 h later).
   - The tag set by a weak stimulus persists for 1–2 h.
 
 ### Criteria for a tag (p. 815)
@@ -63,18 +61,15 @@ A tag must:
 | Class | Candidates and evidence |
 |---|---|
 | Fast synaptic changes | AMPA receptor clustering; lateral mobility of NMDA receptors; Homer-driven insertion of mGluR5; palmitate cycling on PSD-95 |
-| Kinases | CaMKII, made autonomous by autophosphorylation. PKMζ, whose persistent activity needs protein synthesis, is necessary and sufficient for L-LTP maintenance. PKA in *Aplysia*: ubiquitin–proteasome degradation of its regulatory subunit gives persistent activity, via an induced ubiquitin C-terminal hydrolase |
-| Adhesion molecules | Fasciclin II (*Drosophila* NMJ), apCAM (*Aplysia*), NCAM, cadherins, β-catenin, δ-catenin |
+| Kinases | CaMKII, made autonomous by autophosphorylation. PKMζ, whose persistent activity needs protein synthesis, is necessary and sufficient for L-LTP maintenance. PKA, activated through D1/D5 receptors and cAMP in rodent hippocampus (S&A p. 294) |
+| Adhesion molecules | NCAM, cadherins, β-catenin, δ-catenin |
 | Actin network | Remodelling after repeated tetanus lasts ≥18 h (Colicos et al. 2001) |
-| Ion channels | Presynaptic I_h channels at the crayfish NMJ. The tag lasts ~1 h, needs local protein synthesis, does **not** need transcription, and depends on intact actin |
 | Local translation and degradation | mRNA released from RNA granules into polysomes on depolarisation. More spines contain polyribosomes after LTP. Dendritic targeting of *BDNF*/*TrkB* mRNA. *Arc* mRNA accumulates at stimulated sites. Local ubiquitin-mediated protein degradation |
 
 ### Key qualifications
 
-- **Local translation is not a general tag** (pp. 818–819). It is required for synapse-specific LTF
-  in *Aplysia* but not for synaptic tagging at rodent hippocampal synapses (Frey & Morris 1997, 1998).
-  In *Aplysia* it is not needed for facilitation at 24 h, but it is needed at 72 h, where stable new
-  synaptic growth accompanies it.
+- **Local translation is not a general tag** (pp. 818–819). It is not required for synaptic tagging
+  at rodent hippocampal synapses (Frey & Morris 1997, 1998).
 - **Captured products** (p. 819):
   - Largely unknown. MicroRNAs are a speculative candidate.
   - Mice expressing constitutively active CREB (VP16-CREB) in CA1 have a lower threshold for L-LTP,
@@ -413,8 +408,8 @@ Kim & Park 2025.
    - The E-LTP it supports also decays: 1 tetanic train gives LTP that is gone after ~1.5 h
      (M&K Fig. 2b).
 3. **PRP synthesis (strong input or neuromodulator).**
-   - Strong stimulation of any input on the neuron (e.g. 3 tetanic trains, or 5 puffs of serotonin in
-     *Aplysia*) activates the CaMKII–CaMKIV–CREB pathway and transcription (R p. 163; M&K p. 813).
+   - Strong stimulation of any input on the neuron (e.g. 3 tetanic trains) activates the
+     CaMKII–CaMKIV–CREB pathway and transcription (R p. 163; M&K p. 814).
    - The same can be triggered by weak stimulation combined with dopamine D1/D5 agonists, BDNF or
      carbachol (R p. 163).
    - Products (candidates: ARC, GluR1, HOMER1A, PKMζ; R p. 163) are delivered throughout the cell

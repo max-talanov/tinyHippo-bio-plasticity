@@ -151,7 +151,7 @@ including their recording conditions.
   - ~1–2 h (Martin & Kosik);
   - ~1 h in both directions (Rogerson et al.).
 
-  The cell's ability to capture lasts longer: 1–4 h in *Aplysia*, and a weak input up to ~2.5–3 h
+  The cell's ability to capture lasts longer: a weak input up to ~2.5–3 h
   after the strong one in CA1. The old upper end of 4 h may therefore describe the PRP availability
   window, not the tag. Resolve this against Frey & Morris before fixing `τ_tag` in `params.py`.
 - **PRP pool:** §1 row 5 describes a cell-wide pool. The reviews add three limits:
